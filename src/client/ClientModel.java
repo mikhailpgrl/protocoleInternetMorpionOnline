@@ -88,7 +88,6 @@ public class ClientModel {
 		try (OutputStream os = this.socket.getOutputStream();) {
 			return os;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;

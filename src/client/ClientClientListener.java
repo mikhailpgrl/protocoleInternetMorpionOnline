@@ -151,6 +151,7 @@ public class ClientClientListener implements Runnable{
 				Client.player_num = 1;
 				Client.isMyTurn = true;
 				break;
+				// TODO: traiter le message regame
 			case Client.regame:
 				if(isServer){
 					myState = CCLState.waiting_regame_server; // Je réponds YouStartGame ou Pos ou Exit
