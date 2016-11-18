@@ -7,7 +7,7 @@ import java.io.OutputStream;
 
 import client.Client;
 import client.ClientModel;
-import client.ClientServerListener.ClientSL_current_state;
+import utils.SHState;
 
 
 public class ServerHandlerThread implements Runnable{
@@ -32,18 +32,14 @@ public class ServerHandlerThread implements Runnable{
 	private ClientModel myClientModel;
 	private ClientModel myClientModel2; // avec qui jouer
 	
-	public static enum SHT_current_state {
-		nothing,
-		waiting_port,
-		waiting_ok
-	}
+
 	
-	public static SHT_current_state myState;
+	public static SHState myState;
 	
 
 	public ServerHandlerThread(ClientModel cm) {
 		super();
-		this.myState = SHT_current_state.nothing;
+		this.myState = SHState.nothing;
 		this.myClientModel = cm;
 		this.myClientModel2 = null;
 	}
@@ -116,7 +112,7 @@ public class ServerHandlerThread implements Runnable{
 		
 		switch (msg) {
 		case list_available:
-			this.myState = SHT_current_state.waiting_ok;
+			this.myState = SHState.waiting_ok;
 			System.out.println("sendMessage: case list_available ");
 			String list = getPlayersList();
 			System.out.println("List est = " + list);
@@ -133,11 +129,11 @@ public class ServerHandlerThread implements Runnable{
 			break;
 		case refuse_game:
 			System.out.println("je suis dans refuse game");
-			this.myState = SHT_current_state.waiting_ok;
+			this.myState = SHState.waiting_ok;
 			sendMsgToClient(message, os);
 			break;
 		case create_server:
-			this.myState = SHT_current_state.waiting_port;
+			this.myState = SHState.waiting_port;
 			sendMsgToClient(message, os);
 			break;
 		case adress_game:
@@ -206,23 +202,23 @@ public class ServerHandlerThread implements Runnable{
 
 		System.out.println("receiveMessage:" + message + " state = "  + myState.toString());
 		
-		if(this.myState == SHT_current_state.waiting_ok){
+		if(this.myState == SHState.waiting_ok){
 			if(msg.compareTo(Client.ok) == 0){
 				System.out.println("in state waiting_ok completed");
-				myState = SHT_current_state.nothing;
+				myState = SHState.nothing;
 			}else{
 				System.out.println("J'attend la reponse 'ok' du client!");
 			}
 		}
-		if(this.myState == SHT_current_state.waiting_port){
+		if(this.myState == SHState.waiting_port){
 			if(msg.compareTo(Client.port) == 0){
 				System.out.println("in state waiting_port completed");
-				myState = SHT_current_state.nothing;
+				myState = SHState.nothing;
 			}else{
 				System.out.println("J'attend la reponse 'port' du client!");
 			}
 		}
-		if(this.myState == SHT_current_state.nothing){
+		if(this.myState == SHState.nothing){
 			switch (msg) {
 			case Client.exit:
 				System.out.println("Le client + " + myClientModel.getId() + " @"+myClientModel.getSocket().getInetAddress().toString() + 
@@ -315,7 +311,7 @@ public class ServerHandlerThread implements Runnable{
 				Utils.removeFromQueue(asker.getId(), myClientModel.getId());
 				myClientModel2 = null;
 			case Client.askId:
-				myState = SHT_current_state.waiting_ok;
+				myState = SHState.waiting_ok;
 				String msgTmp = your_id;
 				msgTmp += " "+myClientModel.getId();
 				System.out.println("Server answer: " + msgTmp);

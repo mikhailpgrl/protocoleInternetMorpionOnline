@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 
 import client.Client.current_role;
-import client.ClientServerListener.ClientSL_current_state;
 import game.GameHandler;
 /**
  * 

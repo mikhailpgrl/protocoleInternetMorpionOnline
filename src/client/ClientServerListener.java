@@ -12,6 +12,7 @@ import client.Client.current_role;
 import client.Client.Current_state;
 import game.Platforme;
 import server.ServerHandlerThread;
+import utils.ClientSLStates;
 
 /**
  * 
@@ -25,15 +26,9 @@ import server.ServerHandlerThread;
 public class ClientServerListener implements Runnable{
 	
 	
-	public static enum ClientSL_current_state {
-		nothing,
-		//waiting_error_create_addr,
-		waiting_ok,
-		waiting_yourid,
-		waiting_ok_exit
-	}
 	
-	public static ClientSL_current_state myState;
+	
+	public static ClientSLStates myState;
 	
 	
 	private OutputStream osServ;
@@ -43,7 +38,7 @@ public class ClientServerListener implements Runnable{
 
 	public ClientServerListener(OutputStream os, InputStream is) {
 		super();
-		this.myState = ClientSL_current_state.nothing;
+		this.myState = ClientSLStates.nothing;
 		this.osServ = os;
 		this.is = is;
 	}
@@ -85,34 +80,34 @@ public class ClientServerListener implements Runnable{
 		String msg = parts[0];
 		System.out.println("Message recu " + message);
 		// ATTENTE D'UN ETAT PARTICULIER
-		if(myState == ClientSL_current_state.waiting_ok){
+		if(myState == ClientSLStates.waiting_ok){
 			if(msg.compareTo(Client.ok) == 0){
 				System.out.println("in state waiting_ok completed");
-				myState = ClientSL_current_state.nothing;
+				myState = ClientSLStates.nothing;
 			}else{
 				System.out.println("J'attend la reponse ok du server!");
 			}
 		}
-		if(myState == ClientSL_current_state.waiting_yourid){
+		if(myState == ClientSLStates.waiting_yourid){
 			if(msg.compareTo(Client.yourId) == 0){
 				System.out.println("in state waitin your id  completed");
 				System.out.println("Votre ID " + msgPart2);
-				myState = ClientSL_current_state.nothing;
+				myState = ClientSLStates.nothing;
 			}else{
 				System.out.println("J'attend la reponse ok du server!");
 			}
 		}
-		if(myState == ClientSL_current_state.waiting_ok_exit){
+		if(myState == ClientSLStates.waiting_ok_exit){
 			if(msg.compareTo(Client.ok) == 0){
 				System.out.println("in state waiting_ok_exit completed");
-				myState = ClientSL_current_state.nothing;
+				myState = ClientSLStates.nothing;
 				System.out.println("EXIT");
 			}else{
 				System.out.println("J'attend la reponse ok du server!");
 			}
 		}
 		// FIN D'ATTENTE D'UN ETAT PARTICULIER
-		if(myState == ClientSL_current_state.nothing){
+		if(myState == ClientSLStates.nothing){
 			switch (msg) {
 			// Affiche les ids des joueurs
 			case ServerHandlerThread.list_available:

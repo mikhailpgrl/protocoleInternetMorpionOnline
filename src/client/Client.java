@@ -8,9 +8,9 @@ import java.net.Socket;
 import java.util.Scanner;
 
 import client.ClientClientListener.CCL_current_state;
-import client.ClientServerListener.ClientSL_current_state;
 import game.GameHandler;
 import game.Platforme;
+import utils.ClientSLStates;
 
 
 /**
@@ -164,7 +164,7 @@ public class Client {
 			if(msgPart2.compareTo("") != 0){
 				if((msgPart2.toLowerCase().compareTo("Y".toLowerCase()) == 0) || (msgPart2.toLowerCase().compareTo("N".toLowerCase()) == 0)){
 					msg += " " + msgPart2;
-					myClientServerListener.myState = ClientServerListener.ClientSL_current_state.nothing;
+					myClientServerListener.myState = ClientSLStates.nothing;
 					sendMsgToServer(msg, os);	
 				}else{
 					System.out.println("SendMessges: reponse n'est pas conforme au protocole:" + msg + " " + msgPart2);
@@ -187,7 +187,7 @@ public class Client {
 			break;
 		case returnServer:
 		case exit:
-			myClientServerListener.myState = ClientServerListener.ClientSL_current_state.waiting_ok_exit;
+			myClientServerListener.myState = ClientSLStates.waiting_ok_exit;
 			sendMsgToServer(exit, os);
 
 		case ok:
