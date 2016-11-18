@@ -18,24 +18,20 @@ import utils.UtilsClient;
  * 
  * @author POGORELOV Mikhail et CHIEV Alexandre
  * 
- * Runnable qui gere la connexion entre le Client et le Server
+ *         Runnable qui gere la connexion entre le Client et le Server
  *
  */
 
+public class ClientServerListener implements Runnable {
 
-public class ClientServerListener implements Runnable{
-	
-	
-	
 	// TODO: Mettre la variable en private
 	public CSLState myState;
-	
+
 	// Socket de communication avec le serveur
 	private Socket socket;
 	private OutputStream osServ;
 	private InputStream is;
-	
-	
+
 	// Socket de connexion au server de jeu (autre client)
 	private Socket gameServerSocket;
 
@@ -50,7 +46,7 @@ public class ClientServerListener implements Runnable{
 			System.out.println(e.getMessage().toString());
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	@Override
@@ -58,60 +54,61 @@ public class ClientServerListener implements Runnable{
 		BufferedReader myIsr;
 		try {
 			myIsr = new BufferedReader(new InputStreamReader(is));
-			char[] buf = new char[1024];;
-			while (true){
+			char[] buf = new char[1024];
+			;
+			while (true) {
 				String line;
-				while((line = myIsr.readLine()) != null) {
-					receiveMessage(line,osServ);
+				while ((line = myIsr.readLine()) != null) {
+					receiveMessage(line, osServ);
 				}
 			}
-		}
-		catch (IOException e1) {
-			if("Socket closed".compareTo(e1.getMessage().toString()) == 0){
+		} catch (IOException e1) {
+			if ("Socket closed".compareTo(e1.getMessage().toString()) == 0) {
 				System.out.println("Le client s'est d�connect�");
-			}else{
+			} else {
 				System.out.println(e1.getMessage().toString());
-				e1.printStackTrace();	
+				e1.printStackTrace();
 			}
 		}
 	}
 
 	/**
 	 * Traite les messages recu par le serveur
+	 * 
 	 * @param message
 	 * @param os
 	 */
-	public void receiveMessage(String message, OutputStream os){
+	public void receiveMessage(String message, OutputStream os) {
 		String[] parts = message.split(" ");
 		String msgPart2 = "";
-		if(parts.length > 1){
-			msgPart2 = parts[1]; 
+		if (parts.length > 1) {
+			msgPart2 = parts[1];
 		}
 		String msg = parts[0];
 		System.out.println("Message recu " + message);
 		/**
 		 * On traite les reponses en fonction de l'état du client
 		 */
-		if(myState == CSLState.waiting_ok){
-			if(msg.compareTo(Client.ok) == 0){
+		if (myState == CSLState.waiting_ok) {
+			if (msg.compareTo(Client.ok) == 0) {
 				System.out.println("in state waiting_ok completed");
 				myState = CSLState.nothing;
-			}else{
+			} else {
 				System.out.println("J'attend la reponse ok du server!");
 			}
 		}
-		if(myState == CSLState.waiting_yourid){
-			if(msg.compareTo(Client.yourId) == 0){
+		if (myState == CSLState.waiting_yourid) {
+			if (msg.compareTo(Client.yourId) == 0) {
 				System.out.println("in state waiting your id  completed");
 				System.out.println("Votre ID " + msgPart2);
 				myState = CSLState.nothing;
 				Client.sendMsgToServer(Client.ok, os);
-			}else{
+			} else {
 				System.out.println("J'attend la reponse ok du server!");
 			}
 		}
-		if(myState == CSLState.waiting_ok_exit){
-			if(msg.compareTo(Client.ok) == 0){
+		if (myState == CSLState.waiting_ok_exit) {
+			if (msg.compareTo(Client.ok) == 0) {
 				System.out.println("in state waiting_ok_exit completed");
 				myState = CSLState.nothing;
 				try {
@@ -120,19 +117,17 @@ public class ClientServerListener implements Runnable{
 					e.printStackTrace();
 				}
 				System.out.println("Deconnexion...");
-			}else{
+			} else {
 				System.out.println("J'attend la reponse ok du server!");
 			}
 		}
-		if(myState == CSLState.waiting_refuse_error_create_addr
-				|| myState == CSLState.waiting_error_create_server){
+		if (myState == CSLState.waiting_refuse_error_create_addr || myState == CSLState.waiting_error_create_server) {
 			switch (msg) {
 			case ServerHandlerThread.refuse_game:
-				if(myState == CSLState.waiting_refuse_error_create_addr){
+				if (myState == CSLState.waiting_refuse_error_create_addr) {
 					System.out.println("Votre demande a ete refusee");
-				}else{
-					System.out.println("Vous avez envoyé Answer Y, donc vous ne pouvez "
-							+ "pas recevoir RefuseGame");
+				} else {
+					System.out.println("Vous avez envoyé Answer Y, donc vous ne pouvez " + "pas recevoir RefuseGame");
 				}
 				break;
 			case ServerHandlerThread.adress_game:
@@ -141,7 +136,7 @@ public class ClientServerListener implements Runnable{
 				myState = CSLState.nothing;
 				break;
 			case ServerHandlerThread.error:
-				showMessage(message,false);
+				showMessage(message, false);
 				myState = CSLState.nothing;
 				break;
 			case ServerHandlerThread.create_server:
@@ -154,29 +149,29 @@ public class ClientServerListener implements Runnable{
 			}
 		}
 		// FIN D'ATTENTE D'UN ETAT PARTICULIER
-		if(myState == CSLState.nothing){
+		if (myState == CSLState.nothing) {
 			switch (msg) {
 			// Affiche les ids des joueurs
 			case ServerHandlerThread.list_available:
 				Client.sendMsgToServer(Client.ok, os);
-				showMessage(message,true);
+				showMessage(message, true);
 				break;
-				// Affiche le message en entier	
-			
+			// Affiche le message en entier
+
 			case ServerHandlerThread.ask_game:
-				System.out.println("Voulez vous jouer avec le jouer : "  + message);
+				System.out.println("Voulez vous jouer avec le jouer : " + message);
 				break;
 			default:
 				break;
 			}
-		}		
+		}
 	}
 
-
 	/**
-	 * Port : 1028 // A modifier si besoin (ou à passer en argument au lancement du client)
+	 * Port : 1028 // A modifier si besoin (ou à passer en argument au lancement
+	 * du client)
 	 */
-	private void createServer(OutputStream os){
+	private void createServer(OutputStream os) {
 		System.out.println("createServer: starting");
 		try {
 			ServerSocket serverSocket = UtilsClient.create();
@@ -188,7 +183,7 @@ public class ClientServerListener implements Runnable{
 			Client.myRole = current_role.server;
 			Client.myPlatforme = new Platforme();
 			Client.myPlatforme.show();
-			if(Client.myPlatforme == null){
+			if (Client.myPlatforme == null) {
 				System.out.println("myPlatforme is null");
 			}
 			startClientClientListener(gameServerSocket, true);
@@ -201,50 +196,52 @@ public class ClientServerListener implements Runnable{
 
 	/**
 	 * Con
+	 * 
 	 * @param addPort
 	 */
-	private void connectToTheGameServer(String addPort){		
+	private void connectToTheGameServer(String addPort) {
 		String[] add = addPort.split(":");
 		String address = add[0];
 		String port = add[1];
 		System.out.println("connectToTheGameServer: @:" + address + ", port:" + port);
-		try{
-			this.gameServerSocket = new Socket(address,Integer.valueOf(port));
+		try {
+			this.gameServerSocket = new Socket(address, Integer.valueOf(port));
 			System.out.println("connectToTheGameServer: connected");
 			Client.myState = Client.Current_state.client_client;
 			Client.myRole = current_role.client;
 			Client.myPlatforme = new Platforme();
-			//Client.myPlatforme.show();
-			if(Client.myPlatforme == null){
+			// Client.myPlatforme.show();
+			if (Client.myPlatforme == null) {
 				System.out.println("ici null");
 			}
 			startClientClientListener(gameServerSocket, false);
-		}catch (IOException e) {
+		} catch (IOException e) {
 			System.out.println("client message: " + e.getMessage().toString());
 		}
 	}
 
-	
-	private static void startClientClientListener(Socket socket, boolean isServer){
+	private static void startClientClientListener(Socket socket, boolean isServer) {
 		Client.myClientClientListener = new ClientClientListener(socket, isServer);
 		new Thread(Client.myClientClientListener).start();
 	}
-	
-	
+
 	/**
 	 * Affiche les message
-	 * @param message : message a afficher
-	 * @param isList: true si on veux afficher la liste des joueurs
+	 * 
+	 * @param message
+	 *            : message a afficher
+	 * @param isList:
+	 *            true si on veux afficher la liste des joueurs
 	 */
-	private void showMessage(String message, boolean isList){
-		if(isList){
+	private void showMessage(String message, boolean isList) {
+		if (isList) {
 			String[] parts = message.split(" ");
-			if(parts.length == 2)
+			if (parts.length == 2)
 				System.out.println("Aucun joueur sur le serveur");
-		}else{
+		} else {
 			System.out.println(message);
 		}
-		
+
 	}
 
 	public Socket getGameServerSocket() {
@@ -254,10 +251,5 @@ public class ClientServerListener implements Runnable{
 	public void setGameServerSocket(Socket gameServerSocket) {
 		this.gameServerSocket = gameServerSocket;
 	}
-	
-	
-	
-
-
 
 }

@@ -6,11 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.ServerSocket;
 import java.net.Socket;
 
 import client.Client.current_role;
-import game.GameHandler;
 import utils.CCLState;
 import utils.ClientStateHandler;
 /**
@@ -104,22 +102,25 @@ public class ClientClientListener implements Runnable{
 		}
 		String msg = parts[0];
 		System.out.println("ClientClientServeur: Message recu " + message + " votre etat:" + myState);
-		if(myState == CCLState.in_game){
+		switch (myState) {
+		case in_game:
 			ClientStateHandler.handle_in_game_state(msg, msgPart2, myState, val, os);
-		}
-		if(myState == CCLState.nothing){
-			ClientStateHandler.handle_nothing_state(msg, msgPart2, myState, val, os, isServer);
-		}
-		if(myState == CCLState.waiting_regame_server){
+			break;
+		case nothing:
+			ClientStateHandler.handle_nothing_state(msg, msgPart2, myState, val, os, isServer,mySocket);			
+			break;
+		case waiting_regame_server:
 			ClientStateHandler.handle_waiting_regame_server(msg, msgPart2, myState, val, os, mySocket);
-		}
-		if(myState == CCLState.waiting_regame_client){
+			break;
+		case waiting_regame_client:
 			ClientStateHandler.handle_waiting_regame_client(msg, msgPart2, myState, val, os, mySocket);	
+			break;
+		case waiting_ok:
+			ClientStateHandler.handle_waiting_ok(msg, myState);			
+			break;
+		default:
+			break;
 		}
-		if(myState == CCLState.waiting_ok){
-			ClientStateHandler.handle_waiting_ok(msg, myState);
-		}
-		
 	}
 
 	

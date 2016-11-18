@@ -23,12 +23,12 @@ public class ClientStateHandler {
 			String resp = GameHandler.checkPlatform(Client.myPlatforme);
 			if(resp != null){
 				if(resp.compareTo(Client.youWin) == 0){
-					myState = CCLState.waiting_ok;
+					Client.myClientClientListener.setMyState(CCLState.waiting_ok);
 					Client.sendMsgToServer(Client.youWin, os);
 					System.out.println("Votre adversaire gagne la partie!");
 				}else{
 					if(resp.compareTo(Client.draw) == 0){
-						myState = CCLState.waiting_ok;
+						Client.myClientClientListener.setMyState(CCLState.waiting_ok);
 						Client.sendMsgToServer(Client.draw, os);
 						System.out.println("Egalité!");
 					}
@@ -41,7 +41,7 @@ public class ClientStateHandler {
 		case	Client.youWin:
 			Client.sendMsgToServer(Client.ok, os);
 			System.out.println("Vous avez gagné la partie!");
-			myState = CCLState.nothing;
+			Client.myClientClientListener.setMyState(CCLState.nothing);
 			break;
 		case	Client.draw:
 			Client.sendMsgToServer(Client.ok, os);
@@ -55,22 +55,23 @@ public class ClientStateHandler {
 		}
 	}
 	
-	public static void handle_nothing_state(String msg, String msgPart2, CCLState myState, int val, OutputStream os, boolean isServer){
+	public static void handle_nothing_state(String msg, String msgPart2, CCLState myState, int val, OutputStream os, boolean isServer, Socket socket){
 
 		switch (msg) {
 		case Client.youStartGame:
-			myState = CCLState.in_game;
-			System.out.println("Vous commencez la partie");
+			Client.myClientClientListener.setMyState(CCLState.in_game); 
+			System.out.println("Vous commencez la partie! (" + myState.toString() + ")" );
 			Client.myPlatforme.show();
 			Client.player_num = 1;
 			Client.isMyTurn = true;
 			break;
 			// TODO: traiter le message regame
 		case Client.regame:
+			Client.myPlatforme.refresh();
 			if(isServer){
-				myState = CCLState.waiting_regame_server; // Je réponds YouStartGame ou Pos ou Exit
+				Client.myClientClientListener.setMyState(CCLState.waiting_regame_server); // Je réponds YouStartGame ou Pos ou Exit
 			}else{
-				myState = CCLState.waiting_regame_client; // Je répond Yes ou Exit
+				Client.myClientClientListener.setMyState(CCLState.waiting_regame_client); // Je répond Yes ou Exit
 			}
 			System.out.println("Votre ennemie vous demande de rejouer, voulez-vous recommencer?");
 			
@@ -79,7 +80,13 @@ public class ClientStateHandler {
 //			Client.sendMsgToServer(Client.youStartGame, os);
 			break;
 		case Client.exit:
-			System.out.println("Le client a quitte la partie");
+			try {
+				socket.close();
+				System.out.println("Le client a quitte la partie");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			break;
 		default:
 			break;
@@ -103,7 +110,8 @@ public class ClientStateHandler {
 			 * Dans notre cas on dira YouStartGame
 			 */
 			Client.sendMessagesToClient(Client.youStartGame, os);
-			myState = CCLState.in_game;
+			Client.myPlatforme.show();
+			Client.myClientClientListener.setMyState(CCLState.in_game);
 			break;
 		case Client.exit:
 			Client.sendMessagesToClient(Client.ok, os);
@@ -131,7 +139,7 @@ public class ClientStateHandler {
 		case Client.youStartGame:
 			System.out.println("Vous commencez la partie");
 			Client.myPlatforme.show();
-			myState = CCLState.in_game;
+			Client.myClientClientListener.setMyState(CCLState.in_game);
 			Client.isMyTurn = true;
 			break;
 		case Client.pos:
@@ -162,7 +170,11 @@ public class ClientStateHandler {
 	}
 
 	public static void handle_waiting_ok(String msg, CCLState myState){
-		
+		if(msg.compareTo(Client.ok) == 0){
+			Client.myClientClientListener.setMyState(CCLState.nothing);
+		}else{
+			System.out.println("un autre etat");
+		}
 	}
 	
 }

@@ -1,8 +1,6 @@
 package client;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Scanner;
@@ -228,6 +226,7 @@ public class Client {
 						val = Client.player_num == 2? 2:1;
 						if(myPlatforme.put(Integer.valueOf(msgPart2), val) == true){
 							myPlatforme.show();
+							System.out.println("etat "  + myClientClientListener.getMyState().toString());
 							//myPlatforme.show2();
 //							String resp = GameHandler.checkPlatform(Client.myPlatforme);
 //							if(resp != null){
@@ -253,6 +252,7 @@ public class Client {
 			System.out.println("Vous quittez la partie");
 			Client.myRole = Client.current_role.client;
 			Client.myState = Client.Current_state.client_server;
+			sendMessagesToServer(message, os);
 			break;
 		case regame:
 			System.out.println("Vous avez demandé de refaire une partie");
@@ -268,6 +268,8 @@ public class Client {
 				System.out.println("Vous ne pouvez pas faire cette demande maintenant!");
 			}
 			break;
+		case yes:
+			sendMsgToServer(message, os);
 		default:
 			System.out.println("sendMessagesToClient: reponse n'est pas conforme au protocole:");
 			break;
