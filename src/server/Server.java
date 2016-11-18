@@ -39,7 +39,7 @@ public class Server {
 			clients = new ArrayList<>();
 			queue = new HashMap<>();
 			ServerSocket serverSocket = new ServerSocket(1027);
-			System.out.println("Server started: @"+ serverSocket.getInetAddress().toString() +" port:" + serverSocket.getLocalPort());
+			System.out.println("Server started: @"+ serverSocket.getInetAddress().getHostAddress().toString() +" port:" + serverSocket.getLocalPort());
 			while(true){        	
 				Socket s = serverSocket.accept();
 				id++;

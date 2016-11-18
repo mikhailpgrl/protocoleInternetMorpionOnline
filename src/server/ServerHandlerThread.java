@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import client.Client;
 import client.ClientModel;
 import utils.SHState;
+import utils.UtilsServer;
 
 
 public class ServerHandlerThread implements Runnable{
@@ -65,13 +66,13 @@ public class ServerHandlerThread implements Runnable{
 			/**
 			 * Fin envoi message welcome
 			 */
-			while (Utils.isConnected(myClientModel.getId())){
+			//while (Utils.isConnected(myClientModel.getId())){
 				String line;
 				while((line = myIsr.readLine()) != null) {
 					System.out.println(line);
 					receiveMessage(line, myClientModel.getSocket().getOutputStream());
 				}
-			}
+		//	}
 		}
 		catch (IOException e1) {
 			System.out.println(e1.getMessage().toString());
@@ -116,6 +117,7 @@ public class ServerHandlerThread implements Runnable{
 			System.out.println("sendMessage: case list_available ");
 			String list = getPlayersList();
 			System.out.println("List est = " + list);
+			myState = SHState.waiting_ok;
 			sendMsgToClient(list, os);
 			break;
 		case ask_game:
@@ -192,7 +194,7 @@ public class ServerHandlerThread implements Runnable{
 	 * @throws IOException
 	 */
 	private synchronized void receiveMessage(String message, OutputStream os) throws IOException{
-		
+		long threadId = Thread.currentThread().getId();
 		String[] parts = message.split(" ");
 		String msgPart2 = "";
 		if(parts.length > 1){
@@ -200,51 +202,88 @@ public class ServerHandlerThread implements Runnable{
 		}
 		String msg = parts[0];
 
-		System.out.println("receiveMessage:" + message + " state = "  + myState.toString());
+		System.out.println(threadId + "receiveMessage:" + message + " state = "  + myState.toString());
 		
 		if(this.myState == SHState.waiting_ok){
 			if(msg.compareTo(Client.ok) == 0){
-				System.out.println("in state waiting_ok completed");
+				System.out.println(threadId + "in state waiting_ok completed");
 				myState = SHState.nothing;
 			}else{
-				System.out.println("J'attend la reponse 'ok' du client!");
+				System.out.println(threadId + "J'attend la reponse 'ok' du client!");
 			}
 		}
 		if(this.myState == SHState.waiting_port){
 			if(msg.compareTo(Client.port) == 0){
-				System.out.println("in state waiting_port completed");
+				System.out.println(threadId + "in state waiting_port completed");
 				myState = SHState.nothing;
 			}else{
-				System.out.println("J'attend la reponse 'port' du client!");
+				System.out.println(threadId + "J'attend la reponse 'port' du client!");
+			}
+		}
+		if(this.myState == SHState.waiting_answer){
+			if(msg.compareTo(Client.answer_play) == 0){
+				/** On traite deux cas:
+				 * - Le joueur avait accept� la partie
+				 * - Le joeur a refuse la partie*/
+
+				System.out.println("answser_play = "  + message);
+
+				/** Il accepte la partie et va creer le serveur*/
+				if(msgPart2.compareTo("Y") == 0){
+					System.out.println("Le client a accepté la partie");
+					// Le client accepte la partie donc il va creer le serveur
+					sendMsgToClient(create_server, os);
+					System.out.println(threadId + "in state waiting_answer completed");
+					System.out.println(threadId + "new state waiting_port");
+					myState = SHState.waiting_port;
+				}else{
+					/**Il refuse la partie*/
+					if(msgPart2.compareTo("N") == 0){
+						sendMsgToClient(ok, os);
+						System.out.println(threadId + "Le client a refusé la partie");
+						/**Envoi la reponse negative au client qui avait demande la partie*/
+						ClientModel asker = UtilsServer.getAskerFromQueue(myClientModel.getId());
+						sendMsgToClient(refuse_game, asker.getMySocket().getOutputStream());
+						UtilsServer.removeFromQueue(asker.getId(), myClientModel.getId());
+						myClientModel2 = null;
+						myState = SHState.nothing;
+						System.out.println(threadId + "in state waiting_answer completed");
+					}else{
+						System.out.println(threadId + "1) J'attend la reponse 'Answer Y/N' du client!");
+					}
+				}
+				
+			}else{
+				System.out.println(threadId + "2) J'attend la reponse 'Answer Y/N' du client!");
 			}
 		}
 		if(this.myState == SHState.nothing){
 			switch (msg) {
 			case Client.exit:
-				System.out.println("Le client + " + myClientModel.getId() + " @"+myClientModel.getSocket().getInetAddress().toString() + 
+				System.out.println(threadId + "Le client + " + myClientModel.getId() + " @"+myClientModel.getSocket().getInetAddress().toString() + 
 						" veut se d�connecter!");
-				Utils.removeClientFromList(myClientModel.getId());
+				UtilsServer.removeClientFromList(myClientModel.getId());
 				//myClientModel.getMySocket().close();
 				break;
 			case Client.askList:
-				System.out.println("client asked a list");
+				System.out.println(threadId + "client asked a list");
 				sendMessage(list_available, os);
 				break;
 			case Client.play:
-				System.out.println("Demande de jouer avec id + " + msgPart2);
+				System.out.println(threadId + "Demande de jouer avec id + " + msgPart2);
 
 				if(msgPart2.compareTo(myClientModel.getId()) == 0){
 					String rep = error+ " 404";
 					sendMessage(rep, os);
 				}else{
 					// On verifie si le second joueur est dans le jeu
-					if(!Utils.isInGame(msgPart2)){
+					if(!UtilsServer.isInGame(msgPart2)){
 						/**
 						 * Celui qui demande fait le client, et celui qui re�oit fait le serveur
 						 */
 						if(myClientModel2 == null){
 							// On recupere son model grâce à son ID
-							myClientModel2 = Utils.getClientById(msgPart2);
+							myClientModel2 = UtilsServer.getClientById(msgPart2);
 							/**
 							 * On demande a cm2 s'il veut bien faire la partie
 							 */
@@ -252,51 +291,25 @@ public class ServerHandlerThread implements Runnable{
 							// Type du Message AskGame + ID
 							tmpMsg += " "+ myClientModel.getId();
 							if(myClientModel2 != null){
-								System.out.println("second client is not null");
+								System.out.println(threadId + "second client is not null");
 							}
 							// On met les jouers dans la file d'attente
-							Utils.addToQueue(myClientModel.getId(), myClientModel2.getId());
-							sendMsgToClient(tmpMsg, myClientModel2.getSocket().getOutputStream());	
+							UtilsServer.addToQueue(myClientModel.getId(), myClientModel2.getId());
+							sendMsgToClient(tmpMsg, myClientModel2.getSocket().getOutputStream());
+							myState = SHState.waiting_answer;
 						}else{
-							System.out.println("myClientModel2 is not null = " + msgPart2);
+							System.out.println(threadId + "myClientModel2 is not null = " + msgPart2);
 						}
 
 					}else{
-						System.out.println("Le joueur " + msgPart2 + " est deja dans le jeu");
+						System.out.println(threadId + "Le joueur " + msgPart2 + " est deja dans le jeu");
 					}
 				}
 
 				break;
-				
-				/** Le cas ou les client accepte la partie (donc il va �tre le serveur)*/	
-			case Client.answer_play:
-				/** On traite deux cas:
-				 * - Le joueur avait accept� la partie
-				 * - Le joeur a refus� la partie*/
-
-				System.out.println("answser_play = "  + message);
-
-
-				/** Il accepte la partie et va creer le serveur*/
-				if(msgPart2.compareTo("Y") == 0){
-					System.out.println("Le client a accepté la partie");
-					// Le client accepte la partie donc il va creer le serveur
-					sendMsgToClient(create_server, os);
-				}
-				/**Il refuse la partie*/
-				if(msgPart2.compareTo("N") == 0){
-					sendMsgToClient(ok, os);
-					System.out.println("Le client a refusé la partie");
-					/**Envoi la reponse negative au client qui avait demande la partie*/
-					ClientModel asker = Utils.getAskerFromQueue(myClientModel.getId());
-					sendMsgToClient(refuse_game, asker.getMySocket().getOutputStream());
-					Utils.removeFromQueue(asker.getId(), myClientModel.getId());
-					myClientModel2 = null;
-				}			
-				break;
 				// Le client renvoi l'addres donc c'est le serveur	
 			case Client.adressGame:
-				System.out.println("Server adresse recue: " + msgPart2);
+				System.out.println(threadId + "Server adresse recue: " + msgPart2);
 				String[] add = msgPart2.split(":");
 				String address = add[0];
 				this.add = address;
@@ -305,16 +318,16 @@ public class ServerHandlerThread implements Runnable{
 				break;
 			case Client.port:
 				this.numPort = Integer.valueOf(msgPart2);
-				ClientModel asker = Utils.getAskerFromQueue(myClientModel.getId());
-				ClientModel resp = Utils.getResponderFromQueue(asker.getId());
+				ClientModel asker = UtilsServer.getAskerFromQueue(myClientModel.getId());
+				ClientModel resp = UtilsServer.getResponderFromQueue(asker.getId());
 				sendMsgToClient(adress_game + " " +resp.getSocket().getInetAddress().getHostAddress() +":"+numPort,asker.getSocket().getOutputStream() );
-				Utils.removeFromQueue(asker.getId(), myClientModel.getId());
+				UtilsServer.removeFromQueue(asker.getId(), myClientModel.getId());
 				myClientModel2 = null;
 			case Client.askId:
 				myState = SHState.waiting_ok;
 				String msgTmp = your_id;
 				msgTmp += " "+myClientModel.getId();
-				System.out.println("Server answer: " + msgTmp);
+				System.out.println(threadId + "Server answer: " + msgTmp);
 				sendMsgToClient(msgTmp, os);
 				break;
 			default:

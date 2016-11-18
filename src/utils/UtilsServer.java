@@ -1,12 +1,13 @@
-package server;
+package utils;
 
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import client.ClientModel;
+import server.Server;
 
-public class Utils {
+public class UtilsServer {
 
 	
 	/**
@@ -89,7 +90,7 @@ public class Utils {
 			System.out.println("getAskerFromQueue:" +  entry.getKey().toString());
 			if(entry.getValue().compareTo(id2) == 0){
 				res = entry.getKey();
-				System.out.println("getAskerFromQueue: accepte de jouer avec " + res );
+				//System.out.println("getAskerFromQueue: accepte de jouer avec " + res );
 				return getClientById(res);
 			}
 		}

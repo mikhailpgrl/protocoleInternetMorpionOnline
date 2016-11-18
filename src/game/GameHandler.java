@@ -79,9 +79,10 @@ public class GameHandler {
 			win = 2;
 		}
 		
-		if(win == 1){
+		if(win == 1)
 			return Client.youWin;
-		}
+		if(win == 2)
+			return Client.youWin;
 		if(p.isFull()){
 			return Client.draw;
 		}

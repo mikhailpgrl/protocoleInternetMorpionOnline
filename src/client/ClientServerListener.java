@@ -9,10 +9,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import client.Client.current_role;
-import client.Client.Current_state;
 import game.Platforme;
 import server.ServerHandlerThread;
-import utils.ClientSLStates;
+import utils.CSLState;
+import utils.UtilsClient;
 
 /**
  * 
@@ -27,8 +27,8 @@ public class ClientServerListener implements Runnable{
 	
 	
 	
-	
-	public static ClientSLStates myState;
+	// TODO: Mettre la variable en private
+	public CSLState myState;
 	
 	
 	private OutputStream osServ;
@@ -38,7 +38,7 @@ public class ClientServerListener implements Runnable{
 
 	public ClientServerListener(OutputStream os, InputStream is) {
 		super();
-		this.myState = ClientSLStates.nothing;
+		this.myState = CSLState.nothing;
 		this.osServ = os;
 		this.is = is;
 	}
@@ -79,75 +79,77 @@ public class ClientServerListener implements Runnable{
 		}
 		String msg = parts[0];
 		System.out.println("Message recu " + message);
-		// ATTENTE D'UN ETAT PARTICULIER
-		if(myState == ClientSLStates.waiting_ok){
+		/**
+		 * On traite les reponses en fonction de l'état du client
+		 */
+		if(myState == CSLState.waiting_ok){
 			if(msg.compareTo(Client.ok) == 0){
 				System.out.println("in state waiting_ok completed");
-				myState = ClientSLStates.nothing;
+				myState = CSLState.nothing;
 			}else{
 				System.out.println("J'attend la reponse ok du server!");
 			}
 		}
-		if(myState == ClientSLStates.waiting_yourid){
+		if(myState == CSLState.waiting_yourid){
 			if(msg.compareTo(Client.yourId) == 0){
-				System.out.println("in state waitin your id  completed");
+				System.out.println("in state waiting your id  completed");
 				System.out.println("Votre ID " + msgPart2);
-				myState = ClientSLStates.nothing;
+				myState = CSLState.nothing;
+				Client.sendMsgToServer(Client.ok, os);
 			}else{
 				System.out.println("J'attend la reponse ok du server!");
 			}
 		}
-		if(myState == ClientSLStates.waiting_ok_exit){
+		if(myState == CSLState.waiting_ok_exit){
 			if(msg.compareTo(Client.ok) == 0){
 				System.out.println("in state waiting_ok_exit completed");
-				myState = ClientSLStates.nothing;
+				myState = CSLState.nothing;
 				System.out.println("EXIT");
 			}else{
 				System.out.println("J'attend la reponse ok du server!");
 			}
 		}
-		// FIN D'ATTENTE D'UN ETAT PARTICULIER
-		if(myState == ClientSLStates.nothing){
+		if(myState == CSLState.waiting_refuse_error_create_addr
+				|| myState == CSLState.waiting_error_create_server){
 			switch (msg) {
-			// Affiche les ids des joueurs
-			case ServerHandlerThread.list_available:
-				Client.sendMsgToServer(Client.ok, os);
-				showMessage(message);
-				break;
-				// Affiche le message en entier	
-			case ServerHandlerThread.error:
-				showMessage(message);
-				break;
-			case ServerHandlerThread.ask_game:
-				System.out.println("Voulez vous jouer avec le jouer : "  + message);
-				break;
 			case ServerHandlerThread.refuse_game:
-				System.out.println("Votre demande a ete refusee");
+				if(myState == CSLState.waiting_refuse_error_create_addr){
+					System.out.println("Votre demande a ete refusee");
+				}else{
+					System.out.println("Vous avez envoyé Answer Y, donc vous ne pouvez "
+							+ "pas recevoir RefuseGame");
+				}
 				break;
 			case ServerHandlerThread.adress_game:
 				System.out.println("Vous avez recu l'adresse pour vous connecter: " + msgPart2);
 				connectToTheGameServer(msgPart2);
+				myState = CSLState.nothing;
 				break;
-//			case ServerHandlerThread.your_id:
-//				System.out.println("Votre ID " + msgPart2);
-//				break;	
+			case ServerHandlerThread.error:
+				showMessage(message,false);
+				myState = CSLState.nothing;
+				break;
 			case ServerHandlerThread.create_server:
-				/**
-				 * Reponse temporaire pour cette version de client
-				 */
 				System.out.println("Je cree le serveur" + msgPart2);
-				System.out.println("Envoyez le numero du port!");
-				
 				createServer(os);
-//				String tmpRep = Client.server_adress + " " + "@add" + ":port";
-//				try {
-//					os.write(tmpRep.getBytes());
-//					os.write("\n".getBytes());
-//					os.flush();
-//				} catch (IOException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
+				myState = CSLState.waiting_ok;
+				break;
+			default:
+				break;
+			}
+		}
+		// FIN D'ATTENTE D'UN ETAT PARTICULIER
+		if(myState == CSLState.nothing){
+			switch (msg) {
+			// Affiche les ids des joueurs
+			case ServerHandlerThread.list_available:
+				Client.sendMsgToServer(Client.ok, os);
+				showMessage(message,true);
+				break;
+				// Affiche le message en entier	
+			
+			case ServerHandlerThread.ask_game:
+				System.out.println("Voulez vous jouer avec le jouer : "  + message);
 				break;
 			default:
 				break;
@@ -162,14 +164,8 @@ public class ClientServerListener implements Runnable{
 	private void createServer(OutputStream os){
 		System.out.println("createServer: starting");
 		try {
-			ServerSocket serverSocket = new ServerSocket(1028);
-//			String reponse = Client.adressGame;
-//			reponse+= " " + serverSocket.getInetAddress().getHostAddress().toString()+":"+"1028";
-//			System.out.println("Le message du client serveur: " + reponse);
-//			os.write(reponse.getBytes());
-//			os.write("\n".getBytes());
-//			os.flush();
-//			System.out.println("Message envoy� = " + reponse);
+			ServerSocket serverSocket = UtilsClient.create();
+			Client.sendMsgToServer(Client.port + " " + String.valueOf(serverSocket.getLocalPort()), os);
 			// Attente de connexion
 			gameServerSocket = serverSocket.accept();
 			System.out.println("Client connected");
@@ -223,9 +219,17 @@ public class ClientServerListener implements Runnable{
 	/**
 	 * Affiche les message
 	 * @param message : message a afficher
+	 * @param isList: true si on veux afficher la liste des joueurs
 	 */
-	private void showMessage(String message){
-		System.out.println(message);
+	private void showMessage(String message, boolean isList){
+		if(isList){
+			String[] parts = message.split(" ");
+			if(parts.length == 2)
+				System.out.println("Aucun joueur sur le serveur");
+		}else{
+			System.out.println(message);
+		}
+		
 	}
 
 	public Socket getGameServerSocket() {

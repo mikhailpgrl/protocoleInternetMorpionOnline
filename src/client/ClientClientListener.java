@@ -9,6 +9,7 @@ import java.io.OutputStream;
 
 import client.Client.current_role;
 import game.GameHandler;
+import utils.CCLState;
 /**
  * 
  * @author POGORELOV Mikhail et CHIEV Alexandre
@@ -25,20 +26,16 @@ public class ClientClientListener implements Runnable{
 	
 	private int val;
 	
-	private CCL_current_state myState;
-	public static enum CCL_current_state {
-		nothing,
-		in_game, //Pos, Win, Lose, Draw, Exit
-		waiting_ok
-	}
+	private CCLState myState;
+	
 	
 	
 
-	public CCL_current_state getMyState() {
+	public CCLState getMyState() {
 		return myState;
 	}
 
-	public void setMyState(CCL_current_state myState) {
+	public void setMyState(CCLState myState) {
 		this.myState = myState;
 	}
 
@@ -47,7 +44,7 @@ public class ClientClientListener implements Runnable{
 
 	public ClientClientListener(OutputStream os, InputStream is, boolean isServer) {
 		super();
-		this.myState = CCL_current_state.nothing;
+		this.myState = CCLState.nothing;
 		this.os = os;
 		this.is = is;
 		this.isServer = isServer;
@@ -100,7 +97,7 @@ public class ClientClientListener implements Runnable{
 		}
 		String msg = parts[0];
 		System.out.println("ClientClientServeur: Message recu " + message + " votre etat:" + myState);
-		if(myState == ClientClientListener.CCL_current_state.in_game){
+		if(myState == CCLState.in_game){
 			switch (msg) {
 			case Client.pos:
 				System.out.println("Joueur: joue + " + msgPart2);
@@ -114,13 +111,15 @@ public class ClientClientListener implements Runnable{
 				String resp = GameHandler.checkPlatform(Client.myPlatforme);
 				if(resp != null){
 					if(resp.compareTo(Client.youWin) == 0){
-						myState = ClientClientListener.CCL_current_state.nothing;
+						myState = CCLState.waiting_ok;
+						Client.sendMsgToServer(Client.youWin, os);
 						System.out.println("Votre adversaire gagne la partie!");
-					}
-					if(resp.compareTo(Client.draw) == 0){
-						myState = ClientClientListener.CCL_current_state.nothing;
-						Client.sendMsgToServer(Client.draw, os);
-						System.out.println("Egalité!");
+					}else{
+						if(resp.compareTo(Client.draw) == 0){
+							myState = CCLState.waiting_ok;
+							Client.sendMsgToServer(Client.draw, os);
+							System.out.println("Egalité!");
+						}
 					}
 					Client.sendMsgToServer(resp, os);
 				}else{
@@ -128,9 +127,9 @@ public class ClientClientListener implements Runnable{
 				}
 				break;
 			case	Client.youWin:
-				myState = ClientClientListener.CCL_current_state.nothing;
 				Client.sendMsgToServer(Client.ok, os);
 				System.out.println("Vous avez gagné la partie!");
+				myState = CCLState.nothing;
 				break;
 			case	Client.draw:
 				Client.sendMsgToServer(Client.ok, os);
@@ -143,17 +142,17 @@ public class ClientClientListener implements Runnable{
 				break;
 			}
 		}
-		if(myState == ClientClientListener.CCL_current_state.nothing){
+		if(myState == CCLState.nothing){
 			switch (msg) {
 			case Client.youStartGame:
-				myState = ClientClientListener.CCL_current_state.in_game;
+				myState = CCLState.in_game;
 				System.out.println("Vous commencez la partie");
 				Client.myPlatforme.show();
 				Client.player_num = 1;
 				Client.isMyTurn = true;
 				break;
 			case Client.regame:
-				myState = ClientClientListener.CCL_current_state.in_game;
+				myState = CCLState.in_game;
 				System.out.println("La partie va recommencer!");
 				Client.myPlatforme.refresh();
 				Client.myPlatforme.show();
@@ -166,9 +165,9 @@ public class ClientClientListener implements Runnable{
 				break;
 			}
 		}
-		if(myState == ClientClientListener.CCL_current_state.waiting_ok){
+		if(myState == CCLState.waiting_ok){
 			if(msg.compareTo(Client.ok) == 0){
-				myState = ClientClientListener.CCL_current_state.nothing;
+				myState = CCLState.nothing;
 			}else{
 				System.out.println("un autre etat");
 			}
