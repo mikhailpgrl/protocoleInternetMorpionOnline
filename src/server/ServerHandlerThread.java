@@ -142,6 +142,7 @@ public class ServerHandlerThread implements Runnable{
 			sendMsgToClient(message, os);
 			break;
 		case ok:
+			sendMsgToClient(message, os);
 			break;
 		case your_id:
 			break;
@@ -263,7 +264,8 @@ public class ServerHandlerThread implements Runnable{
 				System.out.println(threadId + "Le client + " + myClientModel.getId() + " @"+myClientModel.getSocket().getInetAddress().toString() + 
 						" veut se d�connecter!");
 				UtilsServer.removeClientFromList(myClientModel.getId());
-				//myClientModel.getMySocket().close();
+				sendMessage(ServerHandlerThread.ok, os);
+				myClientModel.getMySocket().close();
 				break;
 			case Client.askList:
 				System.out.println(threadId + "client asked a list");

@@ -30,17 +30,27 @@ public class ClientServerListener implements Runnable{
 	// TODO: Mettre la variable en private
 	public CSLState myState;
 	
-	
+	// Socket de communication avec le serveur
+	private Socket socket;
 	private OutputStream osServ;
 	private InputStream is;
+	
+	
 	// Socket de connexion au server de jeu (autre client)
 	private Socket gameServerSocket;
 
-	public ClientServerListener(OutputStream os, InputStream is) {
+	public ClientServerListener(Socket socket) {
 		super();
 		this.myState = CSLState.nothing;
-		this.osServ = os;
-		this.is = is;
+		this.socket = socket;
+		try {
+			this.osServ = socket.getOutputStream();
+			this.is = socket.getInputStream();
+		} catch (IOException e) {
+			System.out.println(e.getMessage().toString());
+			e.printStackTrace();
+		}
+		
 	}
 
 	@Override
@@ -104,7 +114,12 @@ public class ClientServerListener implements Runnable{
 			if(msg.compareTo(Client.ok) == 0){
 				System.out.println("in state waiting_ok_exit completed");
 				myState = CSLState.nothing;
-				System.out.println("EXIT");
+				try {
+					socket.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				System.out.println("Deconnexion...");
 			}else{
 				System.out.println("J'attend la reponse ok du server!");
 			}
@@ -176,7 +191,7 @@ public class ClientServerListener implements Runnable{
 			if(Client.myPlatforme == null){
 				System.out.println("myPlatforme is null");
 			}
-			startClientClientListener(gameServerSocket.getOutputStream(), gameServerSocket.getInputStream(), true);
+			startClientClientListener(gameServerSocket, true);
 			// Debut de la partie
 		} catch (IOException e) {
 			System.out.println(e.getMessage().toString());
@@ -203,15 +218,15 @@ public class ClientServerListener implements Runnable{
 			if(Client.myPlatforme == null){
 				System.out.println("ici null");
 			}
-			startClientClientListener(this.getGameServerSocket().getOutputStream(), this.getGameServerSocket().getInputStream(), false);
+			startClientClientListener(gameServerSocket, false);
 		}catch (IOException e) {
 			System.out.println("client message: " + e.getMessage().toString());
 		}
 	}
 
 	
-	private static void startClientClientListener(OutputStream os, InputStream is, boolean isServer){
-		Client.myClientClientListener = new ClientClientListener(os, is,isServer);
+	private static void startClientClientListener(Socket socket, boolean isServer){
+		Client.myClientClientListener = new ClientClientListener(socket, isServer);
 		new Thread(Client.myClientClientListener).start();
 	}
 	

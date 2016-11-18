@@ -87,10 +87,9 @@ public class Client {
 			myState = Current_state.client_server;
 			myRole = current_role.client;
 			isMyTurn = false;
-			InputStreamReader isr = new InputStreamReader(socket.getInputStream());
 			OutputStream os = socket.getOutputStream();
 			/**On lance l'écouter qui recoit les message du serveur*/
-			startClientServerListener(isr, os, socket.getInputStream());
+			startClientServerListener(socket);
 			/** On envoi les messages ici*/
 			while(true){
 				String msg = scan.nextLine();
@@ -103,13 +102,10 @@ public class Client {
 					if(myState == Current_state.client_client){
 						sendMessagesToClient(msg,myClientServerListener.getGameServerSocket().getOutputStream() );
 					}
-					if(msg.compareTo(Client.exit) == 0){
-						socket.close();
-						break;
-					}
+					
 				}
 			}
-			System.out.println("Deconnct�");
+			//System.out.println("Déconnexion!");
 
 		} catch (IOException e) {
 			System.out.println("client message: " + e.getMessage().toString());
@@ -118,8 +114,8 @@ public class Client {
 
 
 
-	private static void startClientServerListener(InputStreamReader isr, OutputStream os, InputStream is){
-		myClientServerListener = new ClientServerListener(os, is);
+	private static void startClientServerListener(Socket socket){
+		myClientServerListener = new ClientServerListener(socket);
 		new Thread(myClientServerListener).start();
 	}
 
@@ -188,10 +184,13 @@ public class Client {
 		case returnServer:
 			myClientServerListener.myState = CSLState.waiting_ok;
 			System.out.println("Vous vous etes reconnecte au server");
+			break;
 		case exit:
 			myClientServerListener.myState = CSLState.waiting_ok_exit;
 			sendMsgToServer(exit, os);
+			break;
 		case ok:
+			break;
 		case askId:
 			myClientServerListener.myState = CSLState.waiting_yourid;
 			sendMsgToServer(msg, os);
@@ -254,22 +253,28 @@ public class Client {
 			System.out.println("Vous quittez la partie");
 			Client.myRole = Client.current_role.client;
 			Client.myState = Client.Current_state.client_server;
+			break;
 		case regame:
-			System.out.println("Vous avez voulez refaire une partie");
+			System.out.println("Vous avez demandé de refaire une partie");
 			if(myClientClientListener.getMyState() == CCLState.nothing){
+				if(myRole == current_role.server){
+					myClientClientListener.setMyState(CCLState.waiting_regame_server);
+				}else{
+					myClientClientListener.setMyState(CCLState.waiting_regame_client);
+				}
 				myPlatforme.refresh();
 				sendMsgToServer(regame, os);
 			}else{
 				System.out.println("Vous ne pouvez pas faire cette demande maintenant!");
 			}
-			
 			break;
 		default:
 			System.out.println("sendMessagesToClient: reponse n'est pas conforme au protocole:");
 			break;
 		}	
 	}
-
+	
+	
 	private void exit(){
 
 	}
