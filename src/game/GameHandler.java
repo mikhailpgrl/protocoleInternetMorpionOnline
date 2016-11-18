@@ -79,27 +79,13 @@ public class GameHandler {
 			win = 2;
 		}
 		
-		System.out.println("Current Winner = " + p.getCurrentWinner() + " sec =  " + p.getSecWinner());
 		if(win == 1){
-			if(p.getCurrentWinner() == 0){
-				p.setCurrentWinner(win);
-			}else{
-				if(p.getCurrentWinner() == 1){
-					p.setSecWinner(win);
-					System.out.println("Cas 1");
-					return Client.youWin;
-				}
-			}
+			return Client.youWin;
 		}
-		if(win == 2){
-			if(p.getCurrentWinner() == 0){
-				System.out.println("Cas 2");
-				return Client.youWin;
-			}
-			if(p.getCurrentWinner() == 1){
-				return Client.draw;
-			}
+		if(p.isFull()){
+			return Client.draw;
 		}
+		
 		
 		
 		

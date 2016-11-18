@@ -7,6 +7,8 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Scanner;
 
+import client.ClientClientListener.CCL_current_state;
+import client.ClientServerListener.ClientSL_current_state;
 import game.GameHandler;
 import game.Platforme;
 
@@ -50,7 +52,7 @@ public class Client {
 	// Error + 777 si l'autre client a triché
 
 	private static ClientServerListener myClientServerListener;
-
+	public static ClientClientListener myClientClientListener;
 
 	public static enum Current_state {
 		client_server,
@@ -214,6 +216,7 @@ public class Client {
 		System.out.println("sendMessagesToClient: Sending " + message);
 		switch (msg) {
 		case youStartGame:
+			myClientClientListener.setMyState(ClientClientListener.CCL_current_state.in_game);
 			sendMsgToServer(msg, os);
 			break;
 		case pos:
@@ -225,6 +228,11 @@ public class Client {
 						myPlatforme.show();
 						//myPlatforme.show2();
 						String resp = GameHandler.checkPlatform(Client.myPlatforme);
+						if(resp != null){
+							if(resp.compareTo(Client.youWin) == 0 || resp.compareTo(Client.draw) == 0){
+								myClientClientListener.setMyState(ClientClientListener.CCL_current_state.waiting_ok);
+							}
+						}
 						sendMsgToServer(message, os);
 						isMyTurn = false;
 					}else{
@@ -238,10 +246,19 @@ public class Client {
 				System.out.println("C'est pas votre tour!");
 			}
 			break;
+		case exit:
+			System.out.println("Vous quittez la partie");
+			Client.myRole = Client.current_role.client;
+			Client.myState = Client.Current_state.client_server;
 		case regame:
 			System.out.println("Vous avez voulez refaire une partie");
-			myPlatforme.refresh();
-			sendMsgToServer(regame, os);
+			if(myClientClientListener.getMyState() == ClientClientListener.CCL_current_state.nothing){
+				myPlatforme.refresh();
+				sendMsgToServer(regame, os);
+			}else{
+				System.out.println("Vous ne pouvez pas faire cette demande maintenant!");
+			}
+			
 			break;
 		default:
 			System.out.println("sendMessagesToClient: reponse n'est pas conforme au protocole:");

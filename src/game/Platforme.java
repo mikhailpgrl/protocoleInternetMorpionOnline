@@ -9,12 +9,10 @@ public class Platforme {
 	 */
 	
 	private int[][] platforme;
-	private int currentWinner; // 1er ou 2nd joueur
-	private int secWinner; // // 1er ou 2nd joueur 
+	private int currentWinner; // 1er ou 2nd joueur 
 
 	public Platforme() {
 		currentWinner = 0;
-		secWinner = 0;
 		this.platforme = new int[3][3];
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
@@ -46,21 +44,6 @@ public class Platforme {
 	}
 	
 	
-	
-
-
-
-
-	public int getSecWinner() {
-		return secWinner;
-	}
-
-
-
-
-	public void setSecWinner(int secWinner) {
-		this.secWinner = secWinner;
-	}
 
 
 
@@ -145,7 +128,6 @@ public class Platforme {
 	
 	public void refresh(){
 		currentWinner = 0;
-		secWinner = 0;
 		this.platforme = new int[3][3];
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
@@ -155,6 +137,20 @@ public class Platforme {
 		System.out.println("Platforme est initialise");
 	}
 
+	/**
+	 * Renvoi true s'il n'y a plus de cases libres
+	 * @return
+	 */
+	public boolean isFull(){
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				if(this.platforme[i][j] != -1)
+					return false;
+			}
+		}
+		return true;
+	}
+	
 	public void show(){
 		char s;
 		for (int i = 0; i < 3; i++) {
@@ -180,7 +176,6 @@ public class Platforme {
 	
 	
 	public void show2(){
-		char s;
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
 				System.out.print("| " + platforme[i][j] + " |");

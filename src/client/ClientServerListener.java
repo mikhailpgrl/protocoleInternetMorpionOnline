@@ -220,8 +220,8 @@ public class ClientServerListener implements Runnable{
 
 	
 	private static void startClientClientListener(OutputStream os, InputStream is, boolean isServer){
-		ClientClientListener ccl= new ClientClientListener(os, is,isServer);
-		new Thread(ccl).start();
+		Client.myClientClientListener = new ClientClientListener(os, is,isServer);
+		new Thread(Client.myClientClientListener).start();
 	}
 	
 	
