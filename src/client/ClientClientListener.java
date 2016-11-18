@@ -152,11 +152,16 @@ public class ClientClientListener implements Runnable{
 				Client.isMyTurn = true;
 				break;
 			case Client.regame:
-				myState = CCLState.in_game;
-				System.out.println("La partie va recommencer!");
-				Client.myPlatforme.refresh();
-				Client.myPlatforme.show();
-				Client.sendMsgToServer(Client.youStartGame, os);
+				if(isServer){
+					myState = CCLState.waiting_regame_server; // Je réponds YouStartGame ou Pos ou Exit
+				}else{
+					myState = CCLState.waiting_regame_client; // Je répond Yes ou Exit
+				}
+				System.out.println("Votre ennemie vous demande de rejouer, voulez-vous recommencer?");
+				
+//				Client.myPlatforme.refresh();
+//				Client.myPlatforme.show();
+//				Client.sendMsgToServer(Client.youStartGame, os);
 				break;
 			case Client.exit:
 				System.out.println("Le client a quitte la partie");

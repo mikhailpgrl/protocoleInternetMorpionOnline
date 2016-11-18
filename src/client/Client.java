@@ -7,7 +7,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Scanner;
 
-import game.GameHandler;
 import game.Platforme;
 import utils.CCLState;
 import utils.CSLState;
