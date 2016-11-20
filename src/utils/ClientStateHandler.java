@@ -85,7 +85,7 @@ public class ClientStateHandler {
 			Client.myPlatforme.refresh();
 			if(isServer){
 				Client.myClientClientListener.setMyState(CCLState.waiting_regame_server); // Je réponds YouStartGame ou Pos ou Exit
-				System.out.println("Votre ennemie vous demande de rejouer, voulez-vous recommencer? (YouStart / Pos /Exit");
+				System.out.println("Votre ennemie vous demande de rejouer, voulez-vous recommencer? (YouStartGame / Pos /Exit");
 				//Client.myPlatforme.show();
 			}else{
 				Client.myClientClientListener.setMyState(CCLState.waiting_regame_client); // Je répond Yes ou Exit
@@ -145,6 +145,7 @@ public class ClientStateHandler {
 				e.printStackTrace();
 			}
 			// Abandon
+			break;
 		default:
 			System.out.println("Mauvais message recu: attente d'un 'Yes' ou d'un 'Exit");
 			break;
@@ -198,9 +199,21 @@ public class ClientStateHandler {
 			System.out.println("un autre etat");
 		}
 	}
+	/**
+	 * 
+	 * @param msg
+	 * @param socket : socket client-client
+	 * @param osServer : outputstream serveur
+	 */
 	
-	public static void handle_waiting_ok_exit(String msg, OutputStream osServer){
+	public static void handle_waiting_ok_exit(String msg, Socket socket, OutputStream osServer){
 		if(msg.compareTo(Client.ok) == 0){
+			try {
+				socket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			Client.myClientClientListener.setMyState(CCLState.nothing);
 			Client.sendMessagesToServer(Client.returnServer, osServer);
 		}else{

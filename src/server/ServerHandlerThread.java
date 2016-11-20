@@ -130,7 +130,7 @@ public class ServerHandlerThread implements Runnable{
 			}
 			break;
 		case refuse_game:
-			System.out.println("je suis dans refuse game");
+			//System.out.println("je suis dans refuse game");
 			this.myState = SHState.waiting_ok;
 			sendMsgToClient(message, os);
 			break;
@@ -185,7 +185,7 @@ public class ServerHandlerThread implements Runnable{
 			}
 		}
 		res+="EndList";
-		System.out.println("getPlayersList: " + res);
+		//System.out.println("getPlayersList: " + res);
 		return res;
 	}
 	/**
@@ -204,9 +204,7 @@ public class ServerHandlerThread implements Runnable{
 		String msg = parts[0];
 
 		System.out.println(threadId + "receiveMessage:" + message + " state = "  + myState.toString());
-		System.out.println("Show queue");
-		UtilsServer.showQueue();
-		
+		//UtilsServer.showQueue();
 		
 		if(this.myState == SHState.waiting_ok){
 			if(msg.compareTo(Client.ok) == 0){

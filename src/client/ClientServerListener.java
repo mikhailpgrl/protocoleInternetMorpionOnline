@@ -64,7 +64,7 @@ public class ClientServerListener implements Runnable {
 			}
 		} catch (IOException e1) {
 			if ("Socket closed".compareTo(e1.getMessage().toString()) == 0) {
-				System.out.println("Le client s'est d�connect�");
+				//System.out.println("Socket client-serveur ferme...");
 			} else {
 				System.out.println(e1.getMessage().toString());
 				e1.printStackTrace();
@@ -112,11 +112,16 @@ public class ClientServerListener implements Runnable {
 				System.out.println("in state waiting_ok_exit completed");
 				myState = CSLState.nothing;
 				try {
+					/**
+					 * Je met isRunning à false
+					 * puis je demande de taper entrer pour quitter 
+					 */
+					Client.isRunning = false;
 					socket.close();
+					System.out.println("Tapez 'entrée' pour sortir...");
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				System.out.println("Deconnexion...");
 			} else {
 				System.out.println("J'attend la reponse ok du server!");
 			}
@@ -160,7 +165,7 @@ public class ClientServerListener implements Runnable {
 			// Affiche le message en entier
 
 			case ServerHandlerThread.ask_game:
-				System.out.println("Voulez vous jouer avec le jouer : " + msgPart2);
+				System.out.println("Voulez vous jouer avec le jouer : " + msgPart2 + "? ");
 				break;
 			default:
 				break;

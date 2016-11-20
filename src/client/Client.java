@@ -60,6 +60,8 @@ public class Client {
 		server,
 		client
 	}
+	
+	public static boolean isRunning;
 	public static boolean isMyTurn;
 	
 	public static int player_num; // 1 ou 2
@@ -74,6 +76,7 @@ public class Client {
 	
 	public static void main(String args[]){
 		System.out.println("Client started");
+		explainCommands();
 		System.out.println("Veuillez saisir l'addresse IP du serveur/entrée pour localhost");
 		Scanner scan = new Scanner(System.in);
 		String address = scan.nextLine();
@@ -88,29 +91,31 @@ public class Client {
 			myRole = current_role.client;
 			isMyTurn = false;
 			osServer = socket.getOutputStream();
+			isRunning = true;
 			/**On lance l'écouter qui recoit les message du serveur*/
 			startClientServerListener(socket);
 			/** On envoi les messages ici*/
-			while(true){
+			while(isRunning){
 				String msg = scan.nextLine();
-				if(msg.trim().compareTo("") == 0){
-					System.out.println("Message null");
-				}else{
-					if(myState == Current_state.client_server){
-						sendMessagesToServer(msg, osServer);
-					}
-					if(myState == Current_state.client_client){
-						sendMessagesToClient(msg,myClientServerListener.getGameServerSocket().getOutputStream() );
-					}
-					
+				if(isRunning){
+					if(msg.trim().compareTo("") == 0){
+						System.out.println("Message null");
+					}else{
+						if(myState == Current_state.client_server){
+							sendMessagesToServer(msg, osServer);
+						}
+						if(myState == Current_state.client_client){
+							sendMessagesToClient(msg,myClientServerListener.getGameServerSocket().getOutputStream() );
+						}
+					}	
 				}
 			}
-			//System.out.println("Déconnexion!");
 
 		} catch (IOException e) {
 			System.out.println("client message: " + e.getMessage().toString());
 		}
 		finally {
+			System.out.println("Vous avez été déconnecté!");
 			scan.close();
 		}
 	}
@@ -128,7 +133,7 @@ public class Client {
 	 * @param os
 	 */
 	public static synchronized void sendMsgToServer(String message,OutputStream os){
-		System.out.println("sendMsgToServer " + message);
+//		System.out.println("sendMsgToServer " + message);
 		try {
 			os.write(message.getBytes());
 			os.write("\n".getBytes());
@@ -154,7 +159,7 @@ public class Client {
 		}
 		String msg = parts[0];
 		
-		System.out.println("sendMessages: Sending " + message);
+		//System.out.println("sendMessages: Sending " + message);
 
 		switch (msg) {
 		case askList:
@@ -218,8 +223,8 @@ public class Client {
 			msgPart2 = parts[1]; 
 		}
 		String msg = parts[0];
-		System.out.println(msg);
-		System.out.println("sendMessagesToClient: Sending " + message);
+		//System.out.println(msg);
+		//System.out.println("sendMessagesToClient: Sending " + message);
 		switch (msg) {
 		case youStartGame:
 			myClientClientListener.setMyState(CCLState.in_game);
@@ -237,7 +242,7 @@ public class Client {
 						val = Client.player_num == 2? 2:1;
 						if(myPlatforme.put(Integer.valueOf(msgPart2), val) == true){
 							myPlatforme.show();
-							System.out.println("etat "  + myClientClientListener.getMyState().toString());
+							//System.out.println("etat "  + myClientClientListener.getMyState().toString());
 							//myPlatforme.show2();
 //							String resp = GameHandler.checkPlatform(Client.myPlatforme);
 //							if(resp != null){
@@ -294,6 +299,15 @@ public class Client {
 		}	
 	}
 	
+	private static void explainCommands(){
+		System.out.println("'AskId' = demander votre id");
+		System.out.println("'AskList' = demander la liste des joueurs connectés au serveur");
+		System.out.println("'Play + id' = jouer avec le joueur id");
+		System.out.println("'Answer Y/N' = accepter ou refuser la partie");
+		System.out.println("'Pos + int ' = jouer à son tour");
+		System.out.println("'Regame' = demander de refaire la partie");
+		System.out.println("'Exit' = quitter le jeu / partie");
+	}
 	
 	private void exit(){
 

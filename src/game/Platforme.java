@@ -19,7 +19,7 @@ public class Platforme {
 				this.platforme[i][j] = -1;
 			}
 		}
-		System.out.println("Platforme est initialise");
+		//System.out.println("Platforme est initialise");
 	}
 	
 		
