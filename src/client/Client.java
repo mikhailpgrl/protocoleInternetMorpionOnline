@@ -34,10 +34,10 @@ public class Client {
 	public static final String askId = "AskId";
 
 	// Réponses possibles du serveur
-	public static String yourId = "YourId";
-	public static String refuseGame = "RefuseGame";
-	public static String error = "Error";
-	public static String createServer = "CreateServer";
+	public static final String yourId = "YourId";
+	public static final String refuseGame = "RefuseGame";
+	public static final String error = "Error";
+	public static final String createServer = "CreateServer";
 	
 	// Message partant de client au client
 	public static final String youStartGame = "YouStartGame"; // indique au cc qu'il commence
@@ -70,6 +70,8 @@ public class Client {
 	public static Platforme myPlatforme;
 	private static int val;
 
+	private static OutputStream osServer;
+	
 	public static void main(String args[]){
 		System.out.println("Client started");
 		System.out.println("Veuillez saisir l'addresse IP du serveur/entrée pour localhost");
@@ -85,7 +87,7 @@ public class Client {
 			myState = Current_state.client_server;
 			myRole = current_role.client;
 			isMyTurn = false;
-			OutputStream os = socket.getOutputStream();
+			osServer = socket.getOutputStream();
 			/**On lance l'écouter qui recoit les message du serveur*/
 			startClientServerListener(socket);
 			/** On envoi les messages ici*/
@@ -95,7 +97,7 @@ public class Client {
 					System.out.println("Message null");
 				}else{
 					if(myState == Current_state.client_server){
-						sendMessagesToServer(msg, os);
+						sendMessagesToServer(msg, osServer);
 					}
 					if(myState == Current_state.client_client){
 						sendMessagesToClient(msg,myClientServerListener.getGameServerSocket().getOutputStream() );
@@ -107,6 +109,9 @@ public class Client {
 
 		} catch (IOException e) {
 			System.out.println("client message: " + e.getMessage().toString());
+		}
+		finally {
+			scan.close();
 		}
 	}
 
@@ -164,7 +169,7 @@ public class Client {
 		case answer_play:
 			if(msgPart2.compareTo("") != 0){
 				if((msgPart2.toLowerCase().compareTo("Y".toLowerCase()) == 0) || (msgPart2.toLowerCase().compareTo("N".toLowerCase()) == 0)){
-					msg += " " + msgPart2;
+					msg += " " + msgPart2.toUpperCase();
 					myClientServerListener.myState = CSLState.waiting_error_create_server;
 					sendMsgToServer(msg, os);	
 				}else{
@@ -181,9 +186,11 @@ public class Client {
 			break;
 		case returnServer:
 			myClientServerListener.myState = CSLState.waiting_ok;
+			sendMsgToServer(returnServer, os);
 			System.out.println("Vous vous etes reconnecte au server");
 			break;
 		case exit:
+			System.out.println("Vous quittez le server");
 			myClientServerListener.myState = CSLState.waiting_ok_exit;
 			sendMsgToServer(exit, os);
 			break;
@@ -220,6 +227,10 @@ public class Client {
 			break;
 		case pos:
 			if(Character.isDigit(msgPart2.charAt(0))){
+				if(myClientClientListener.getMyState() == CCLState.waiting_regame_server){
+					myClientClientListener.setMyState(CCLState.in_game);
+					isMyTurn = true;					
+				}
 				if(isMyTurn){
 					int pos = Integer.valueOf(msgPart2);
 					if(pos >= 0 && pos <= 8){
@@ -250,9 +261,12 @@ public class Client {
 			break;
 		case exit:
 			System.out.println("Vous quittez la partie");
-			Client.myRole = Client.current_role.client;
 			Client.myState = Client.Current_state.client_server;
-			sendMessagesToServer(message, os);
+			Client.myRole = Client.current_role.client;
+			myClientClientListener.setMyState(CCLState.waiting_ok_exit);
+			sendMsgToServer(exit, os);
+			//sendMessagesToServer(Client.returnServer, os);
+			
 			break;
 		case regame:
 			System.out.println("Vous avez demandé de refaire une partie");
@@ -270,6 +284,10 @@ public class Client {
 			break;
 		case yes:
 			sendMsgToServer(message, os);
+			break;
+		case ok:
+			sendMsgToServer(ok, os);
+			break;
 		default:
 			System.out.println("sendMessagesToClient: reponse n'est pas conforme au protocole:");
 			break;

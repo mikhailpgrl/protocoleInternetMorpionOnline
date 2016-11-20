@@ -20,7 +20,8 @@ import utils.ClientStateHandler;
  */
 
 public class ClientClientListener implements Runnable{
-
+	
+	private OutputStream osServer;
 	private OutputStream os;
 	private InputStream is; 
 	private boolean isServer; // true si le client est le serveur de la partie
@@ -29,6 +30,7 @@ public class ClientClientListener implements Runnable{
 	
 	private CCLState myState;
 	private Socket mySocket;
+	
 	
 	
 
@@ -43,10 +45,11 @@ public class ClientClientListener implements Runnable{
 
 
 
-	public ClientClientListener(Socket socket, boolean isServer) {
+	public ClientClientListener(Socket socket, boolean isServer, OutputStream osServer) {
 		super();
 		this.mySocket = socket;
 		this.myState = CCLState.nothing;
+		this.osServer = osServer;
 		try {
 			this.os = socket.getOutputStream();
 			this.is = socket.getInputStream();
@@ -73,7 +76,7 @@ public class ClientClientListener implements Runnable{
 			while (true){
 				String line;
 				while((line = myIsr.readLine()) != null) {
-					receiveMessage(line,os);
+					receiveMessage(line,os,osServer);
 				}
 			}
 		}
@@ -94,7 +97,7 @@ public class ClientClientListener implements Runnable{
 	 * @param message
 	 * @param os
 	 */
-	synchronized public void receiveMessage(String message, OutputStream os){
+	synchronized public void receiveMessage(String message, OutputStream os, OutputStream osServer){
 		String[] parts = message.split(" ");
 		String msgPart2 = "";
 		if(parts.length > 1){
@@ -104,7 +107,7 @@ public class ClientClientListener implements Runnable{
 		System.out.println("ClientClientServeur: Message recu " + message + " votre etat:" + myState);
 		switch (myState) {
 		case in_game:
-			ClientStateHandler.handle_in_game_state(msg, msgPart2, myState, val, os);
+			ClientStateHandler.handle_in_game_state(msg, msgPart2, myState, val, os, osServer,mySocket);
 			break;
 		case nothing:
 			ClientStateHandler.handle_nothing_state(msg, msgPart2, myState, val, os, isServer,mySocket);			
@@ -118,6 +121,8 @@ public class ClientClientListener implements Runnable{
 		case waiting_ok:
 			ClientStateHandler.handle_waiting_ok(msg, myState);			
 			break;
+		case waiting_ok_exit:
+			ClientStateHandler.handle_waiting_ok_exit(msg, osServer);
 		default:
 			break;
 		}

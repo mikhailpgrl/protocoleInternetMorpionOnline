@@ -15,7 +15,7 @@ public class UtilsServer {
 	 * @param id
 	 * @return
 	 */
-	@SuppressWarnings("unused")
+
 	synchronized public static boolean isConnected(String id){
 		for (ClientModel cm : Server.clients) {
 			if(cm.getId().compareTo(id) == 0){
@@ -24,14 +24,23 @@ public class UtilsServer {
 		}
 		return false;
 	}
-	@SuppressWarnings("unused")
-	synchronized public void setClientInGame(ClientModel myClientModel){
+	
+	synchronized static public void setClientInGame(ClientModel myClientModel){
 		for (ClientModel cm : Server.clients) {
 			if(cm.getId().compareTo(myClientModel.getId()) == 0){
 				cm.setInGame(true);
 			}
 		}
 	}
+	synchronized public static void unsetClientInGame(ClientModel myClientModel){
+		for (ClientModel cm : Server.clients) {
+			if(cm.getId().compareTo(myClientModel.getId()) == 0){
+				cm.setInGame(false);
+			}
+		}
+	}
+	
+	
 
 	/**
 	 * Enleve le client de la liste
@@ -55,11 +64,20 @@ public class UtilsServer {
 		for(Iterator<Map.Entry<String, String>> it = Server.queue.entrySet().iterator(); it.hasNext(); ) {
 			Map.Entry<String, String> entry = it.next();
 			if(entry.getKey().compareTo(id1) == 0) {
+				System.out.println("Enleve de la file d'attente");
 				it.remove();
 				break;
 			}
 		}
 	}
+	
+	synchronized public static void showQueue(){
+		for(Iterator<Map.Entry<String, String>> it = Server.queue.entrySet().iterator(); it.hasNext(); ) {
+			Map.Entry<String, String> entry = it.next();
+			System.out.println(entry.getKey() + " " + entry.getValue());
+		}
+	}
+	
 	
 	/**
 	 * Renvoie le model du joueur 2
@@ -72,7 +90,7 @@ public class UtilsServer {
 			System.out.println("getResponderFromQueue:" +  entry.getKey().toString());
 			if(entry.getKey().compareTo(id1) == 0){
 				res = entry.getValue();
-				System.out.println("getResponderFromQueue: accepte de jouer avec " + res );
+				//System.out.println("getResponderFromQueue: accepte de jouer avec " + res );
 				return getClientById(res);
 			}
 		}

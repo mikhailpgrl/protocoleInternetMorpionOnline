@@ -29,7 +29,7 @@ public class ClientServerListener implements Runnable {
 
 	// Socket de communication avec le serveur
 	private Socket socket;
-	private OutputStream osServ;
+	private static OutputStream osServ;
 	private InputStream is;
 
 	// Socket de connexion au server de jeu (autre client)
@@ -40,7 +40,7 @@ public class ClientServerListener implements Runnable {
 		this.myState = CSLState.nothing;
 		this.socket = socket;
 		try {
-			this.osServ = socket.getOutputStream();
+			ClientServerListener.osServ = socket.getOutputStream();
 			this.is = socket.getInputStream();
 		} catch (IOException e) {
 			System.out.println(e.getMessage().toString());
@@ -136,7 +136,8 @@ public class ClientServerListener implements Runnable {
 				myState = CSLState.nothing;
 				break;
 			case ServerHandlerThread.error:
-				showMessage(message, false);
+				showErrorMessage(msgPart2);
+				Client.sendMsgToServer(ServerHandlerThread.ok, os);
 				myState = CSLState.nothing;
 				break;
 			case ServerHandlerThread.create_server:
@@ -159,7 +160,7 @@ public class ClientServerListener implements Runnable {
 			// Affiche le message en entier
 
 			case ServerHandlerThread.ask_game:
-				System.out.println("Voulez vous jouer avec le jouer : " + message);
+				System.out.println("Voulez vous jouer avec le jouer : " + msgPart2);
 				break;
 			default:
 				break;
@@ -221,7 +222,7 @@ public class ClientServerListener implements Runnable {
 	}
 
 	private static void startClientClientListener(Socket socket, boolean isServer) {
-		Client.myClientClientListener = new ClientClientListener(socket, isServer);
+		Client.myClientClientListener = new ClientClientListener(socket, isServer, osServ);
 		new Thread(Client.myClientClientListener).start();
 	}
 
@@ -241,7 +242,15 @@ public class ClientServerListener implements Runnable {
 		} else {
 			System.out.println(message);
 		}
-
+	}
+	
+	private void showErrorMessage(String msgPart2){
+		if(msgPart2.compareTo("404") == 0){
+			System.out.println("Le joueur n'existe pas / ou il est entrain de jouer");
+		}
+		if(msgPart2.compareTo("444") == 0){
+			System.out.println("Vous avez mis votre ID!!!");
+		}
 	}
 
 	public Socket getGameServerSocket() {
