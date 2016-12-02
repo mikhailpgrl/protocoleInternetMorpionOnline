@@ -97,6 +97,34 @@ public class ClientStateHandler {
 //			Client.myPlatforme.show();
 //			Client.sendMsgToServer(Client.youStartGame, os);
 			break;
+		case Client.pos:
+			System.out.println(msg);
+			System.out.println("Joueur: joue + " + msgPart2);
+			// On inverse car on recoi les messages
+			char c = (Client.player_num == 2? 'X': '0');
+			System.out.println("Vous jouez avec " + c);
+			val = Client.player_num == 2? 1:2;
+			Client.myPlatforme.put(Integer.valueOf(msgPart2), val);
+			Client.myPlatforme.show();
+			//Client.myPlatforme.show2();
+			String resp = GameHandler.checkPlatform(Client.myPlatforme);
+			if(resp != null){
+				if(resp.compareTo(Client.youWin) == 0){
+					Client.myClientClientListener.setMyState(CCLState.waiting_ok);
+					Client.sendMsgToServer(Client.youWin, os);
+					System.out.println("Votre adversaire gagne la partie!");
+				}else{
+					if(resp.compareTo(Client.draw) == 0){
+						Client.myClientClientListener.setMyState(CCLState.waiting_ok);
+						Client.sendMsgToServer(Client.draw, os);
+						System.out.println("Egalité!");
+					}
+				}
+				Client.sendMsgToServer(resp, os);
+			}else{
+				Client.isMyTurn = true;
+			}
+			break;
 		case Client.error:
 			System.out.println(msg);
 			break;

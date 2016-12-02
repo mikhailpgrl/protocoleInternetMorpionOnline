@@ -42,8 +42,16 @@ public class ClientClientListener implements Runnable{
 		this.myState = myState;
 	}
 
+	
 
 
+	public Socket getMySocket() {
+		return mySocket;
+	}
+
+	public void setMySocket(Socket mySocket) {
+		this.mySocket = mySocket;
+	}
 
 	public ClientClientListener(Socket socket, boolean isServer, OutputStream osServer) {
 		super();
@@ -104,7 +112,7 @@ public class ClientClientListener implements Runnable{
 			msgPart2 = parts[1]; 
 		}
 		String msg = parts[0];
-		//System.out.println("ClientClientServeur: Message recu " + message + " votre etat:" + myState);
+		System.out.println("ClientClientServeur: Message recu " + message + " votre etat:" + myState);
 		switch (myState) {
 		case in_game:
 			ClientStateHandler.handle_in_game_state(msg, msgPart2, myState, val, os, osServer,mySocket);

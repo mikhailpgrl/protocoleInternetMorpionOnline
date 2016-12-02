@@ -21,7 +21,7 @@ public class ServerHandlerThread implements Runnable{
 	public static final String ask_game = "AskGame";
 	public static final String refuse_game = "RefuseGame";
 	public static final String create_server = "CreateServer";
-	public static final String adress_game = "AdressGame";
+	public static final String address_game = "AddressGame";
 	public static final String port = "Port";
 	public static final String ok = "OK";
 	public static final String your_id = "YourId";
@@ -110,6 +110,7 @@ public class ServerHandlerThread implements Runnable{
 			msgPart2 = parts[1]; 
 		}
 		String msg = parts[0];
+		System.out.println("sendMessage:" + message + " state: " + myState);
 		
 		switch (msg) {
 		case list_available:
@@ -138,7 +139,7 @@ public class ServerHandlerThread implements Runnable{
 			this.myState = SHState.waiting_port;
 			sendMsgToClient(message, os);
 			break;
-		case adress_game:
+		case address_game:
 			sendMsgToClient(message, os);
 			break;
 		case ok:
@@ -205,7 +206,7 @@ public class ServerHandlerThread implements Runnable{
 
 		System.out.println(threadId + "receiveMessage:" + message + " state = "  + myState.toString());
 		//UtilsServer.showQueue();
-		
+	
 		if(this.myState == SHState.waiting_ok){
 			if(msg.compareTo(Client.ok) == 0){
 				System.out.println(threadId + "in state waiting_ok completed");
@@ -332,7 +333,7 @@ public class ServerHandlerThread implements Runnable{
 				ClientModel resp = UtilsServer.getResponderFromQueue(asker.getId());
 				UtilsServer.setClientInGame(asker);
 				UtilsServer.setClientInGame(resp);
-				sendMsgToClient(adress_game + " " +resp.getSocket().getInetAddress().getHostAddress() +":"+numPort,asker.getSocket().getOutputStream() );
+				sendMsgToClient(address_game + " " +resp.getSocket().getInetAddress().getHostAddress() +":"+numPort,asker.getSocket().getOutputStream() );
 				UtilsServer.removeFromQueue(asker.getId(), myClientModel.getId());
 				myClientModel2 = null;
 				break;

@@ -6,6 +6,5 @@ public enum CCLState {
 	waiting_ok,
 	waiting_ok_exit,
 	waiting_regame_client, // YouStart Pos Exit
-	waiting_regame_server, // Yes Exit
-	
+	waiting_regame_server, // Yes Exit	
 }

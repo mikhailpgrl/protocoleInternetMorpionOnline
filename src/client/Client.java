@@ -85,6 +85,9 @@ public class Client {
 				address = "localhost";
 			}
 		}
+		
+		
+		
 		try (Socket socket = new Socket(address, 1027);){
 			System.out.println("Connecté au serveur");
 			myState = Current_state.client_server;
@@ -94,6 +97,30 @@ public class Client {
 			isRunning = true;
 			/**On lance l'écouter qui recoit les message du serveur*/
 			startClientServerListener(socket);
+			
+			Runtime.getRuntime().addShutdownHook(new Thread(){
+				public void run(){
+					if(myState == Current_state.client_server){
+						try {
+							sendMessagesToServer(Client.exit, socket.getOutputStream());
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+					if(myState == Current_state.client_client){
+						try {
+							sendMessagesToServer(Client.exit, socket.getOutputStream());
+							sendMessagesToClient(Client.exit, myClientClientListener.getMySocket().getOutputStream());
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
+			});
+			
+			
 			/** On envoi les messages ici*/
 			while(isRunning){
 				String msg = scan.nextLine();
@@ -159,7 +186,7 @@ public class Client {
 		}
 		String msg = parts[0];
 		
-		//System.out.println("sendMessages: Sending " + message);
+		System.out.println("sendMessages: Sending " + message);
 
 		switch (msg) {
 		case askList:
@@ -223,8 +250,8 @@ public class Client {
 			msgPart2 = parts[1]; 
 		}
 		String msg = parts[0];
-		//System.out.println(msg);
-		//System.out.println("sendMessagesToClient: Sending " + message);
+		System.out.println(msg);
+		System.out.println("sendMessagesToClient: Sending " + message);
 		switch (msg) {
 		case youStartGame:
 			myClientClientListener.setMyState(CCLState.in_game);
@@ -242,7 +269,7 @@ public class Client {
 						val = Client.player_num == 2? 2:1;
 						if(myPlatforme.put(Integer.valueOf(msgPart2), val) == true){
 							myPlatforme.show();
-							//System.out.println("etat "  + myClientClientListener.getMyState().toString());
+							System.out.println("etat "  + myClientClientListener.getMyState().toString());
 							//myPlatforme.show2();
 //							String resp = GameHandler.checkPlatform(Client.myPlatforme);
 //							if(resp != null){

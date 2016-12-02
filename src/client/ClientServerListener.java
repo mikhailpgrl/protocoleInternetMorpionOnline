@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -135,8 +136,9 @@ public class ClientServerListener implements Runnable {
 					System.out.println("Vous avez envoyé Answer Y, donc vous ne pouvez " + "pas recevoir RefuseGame");
 				}
 				break;
-			case ServerHandlerThread.adress_game:
+			case ServerHandlerThread.address_game:
 				System.out.println("Vous avez recu l'adresse pour vous connecter: " + msgPart2);
+				Client.sendMsgToServer(ServerHandlerThread.ok, os);
 				connectToTheGameServer(msgPart2);
 				myState = CSLState.nothing;
 				break;
@@ -163,7 +165,11 @@ public class ClientServerListener implements Runnable {
 				showMessage(message, true);
 				break;
 			// Affiche le message en entier
-
+			case ServerHandlerThread.your_id:
+				Client.sendMsgToServer(Client.ok, os);
+				showMessage(message, true);
+				break;
+			// Affiche le message en entier
 			case ServerHandlerThread.ask_game:
 				System.out.println("Voulez vous jouer avec le jouer : " + msgPart2 + "? ");
 				break;
@@ -209,9 +215,16 @@ public class ClientServerListener implements Runnable {
 		String[] add = addPort.split(":");
 		String address = add[0];
 		String port = add[1];
+		InetAddress intaddr;
 		System.out.println("connectToTheGameServer: @:" + address + ", port:" + port);
+
 		try {
-			this.gameServerSocket = new Socket(address, Integer.valueOf(port));
+			if(address.equals("127.0.0.1")){
+				intaddr = socket.getInetAddress();
+			}else{
+				intaddr = InetAddress.getByName(address);
+			}
+			this.gameServerSocket = new Socket(intaddr, Integer.valueOf(port));
 			System.out.println("connectToTheGameServer: connected");
 			Client.myState = Client.Current_state.client_client;
 			Client.myRole = current_role.client;
