@@ -57,8 +57,8 @@ public class ClientStateHandler {
 			// J'envoi ok a mon adversaire 
 			Client.sendMessagesToClient(Client.ok, os);
 			Client.sendMessagesToServer(Client.returnServer, osSever);
-			System.out.println("Vous vous reconnectez au server");
 			try {
+				System.out.println("Vous vous reconnectez au server");
 				mySocket.close();
 			} catch (IOException e) {
 				System.out.println("Vous vous reconnectez au server");
@@ -165,6 +165,7 @@ public class ClientStateHandler {
 		case Client.exit:
 			Client.sendMessagesToClient(Client.ok, os);
 			// On quitte la partie
+			Client.myState = Current_state.client_server;
 			try {
 				System.out.println("Reconnexion au serveur");
 				mySocket.close();
@@ -205,6 +206,7 @@ public class ClientStateHandler {
 			break;
 		case Client.exit:
 			Client.sendMessagesToClient(Client.ok, os);
+			Client.myState = Current_state.client_server;
 			// On quitte la partie
 			try {
 				System.out.println("Reconnexion au serveur");

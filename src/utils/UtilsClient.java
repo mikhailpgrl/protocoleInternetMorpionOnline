@@ -3,6 +3,9 @@ package utils;
 import java.io.IOException;
 import java.net.ServerSocket;
 
+import client.Client;
+import client.Client.Current_state;
+
 public class UtilsClient {
 	/**
 	 * Genere un tableau de ports puis 
@@ -26,9 +29,4 @@ public class UtilsClient {
 	    // if the program gets here, no port in the range was found
 	    throw new IOException("no free port found");
 	}
-	
-	
-	
-	
-	
 }

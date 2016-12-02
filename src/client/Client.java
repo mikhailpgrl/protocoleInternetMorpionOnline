@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Scanner;
 
+import client.Client.Current_state;
 import game.Platforme;
 import utils.CCLState;
 import utils.CSLState;
@@ -87,44 +88,19 @@ public class Client {
 		}
 		
 		
-		
 		try (Socket socket = new Socket(address, 1027);){
-			System.out.println("Connecté au serveur");
+			System.out.println("Connecté au serveur");		
 			myState = Current_state.client_server;
 			myRole = current_role.client;
 			isMyTurn = false;
 			osServer = socket.getOutputStream();
 			isRunning = true;
+			/**On lance la fonction qui permet de gerer le signal de sortie*/
+			startCtrl_CHandler(socket);
 			/**On lance l'écouter qui recoit les message du serveur*/
 			startClientServerListener(socket);
 			
-			Runtime.getRuntime().addShutdownHook(new Thread(){
-				public void run(){
-					if(myState == Current_state.client_server){
-						try {
-							sendMessagesToServer(Client.exit, socket.getOutputStream());
-						} catch (IOException e) {
-							if(e.getMessage().toString().equals("Broken pipe")){
-								System.out.println("Le serveur est offline");
-							}else{
-								System.out.println(e.getMessage().toString());
-							}
-						}
-					}
-					if(myState == Current_state.client_client){
-						try {
-							sendMessagesToClient(Client.exit, myClientClientListener.getMySocket().getOutputStream());
-							sendMessagesToServer(Client.exit, socket.getOutputStream());
-						} catch (IOException e) {
-							if(e.getMessage().toString().equals("Broken pipe")){
-								System.out.println("Le serveur ou serveur est déjà offline");
-							}else{
-								System.out.println(e.getMessage().toString());
-							}
-						}
-					}
-				}
-			});
+
 			
 			
 			/** On envoi les messages ici*/
@@ -346,8 +322,34 @@ public class Client {
 		System.out.println("'Exit' = quitter le jeu / partie");
 	}
 	
-	private void exit(){
-
+	public static void startCtrl_CHandler(Socket socket){
+		Runtime.getRuntime().addShutdownHook(new Thread(){
+			public void run(){
+				if(myState == Current_state.client_server){
+					try {
+						sendMessagesToServer(Client.exit, socket.getOutputStream());
+					} catch (IOException e) {
+						if(e.getMessage().toString().equals("Broken pipe")){
+							System.out.println("Le serveur est offline");
+						}else{
+							System.out.println(e.getMessage().toString());
+						}
+					}
+				}
+				if(myState == Current_state.client_client){
+					try {
+						sendMessagesToClient(Client.exit, myClientClientListener.getMySocket().getOutputStream());
+						sendMessagesToServer(Client.exit, socket.getOutputStream());
+					} catch (IOException e) {
+						if(e.getMessage().toString().equals("Broken pipe")){
+							System.out.println("Le serveur ou serveur est déjà offline");
+						}else{
+							System.out.println(e.getMessage().toString());
+						}
+					}
+				}
+			}
+		});
 	}
 
 
