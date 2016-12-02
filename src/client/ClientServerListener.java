@@ -17,15 +17,16 @@ import utils.UtilsClient;
 
 /**
  * 
- * @author POGORELOV Mikhail et CHIEV Alexandre
+ * @authors POGORELOV Mikhail et CHIEV Alexandre
  * 
- *         Runnable qui gere la connexion entre le Client et le Server
+ * Runnable qui gere la connexion entre le Client et le Server
+ * Traite les message recu du serveur
+ * Crée le serveur de la partie ou se connecte au serveur de la partie en fonction de son role.
  *
  */
 
 public class ClientServerListener implements Runnable {
 
-	// TODO: Mettre la variable en private
 	public CSLState myState;
 
 	// Socket de communication avec le serveur
@@ -55,8 +56,6 @@ public class ClientServerListener implements Runnable {
 		BufferedReader myIsr;
 		try {
 			myIsr = new BufferedReader(new InputStreamReader(is));
-			char[] buf = new char[1024];
-			;
 			while (true) {
 				String line;
 				while ((line = myIsr.readLine()) != null) {
@@ -180,15 +179,14 @@ public class ClientServerListener implements Runnable {
 	}
 
 	/**
-	 * Port : 1028 // A modifier si besoin (ou à passer en argument au lancement
-	 * du client)
+	 * Crée le serveur pour la communication client-client
+	 * @param os
 	 */
 	private void createServer(OutputStream os) {
 		System.out.println("createServer: starting");
 		try {
 			ServerSocket serverSocket = UtilsClient.create();
 			Client.sendMsgToServer(Client.port + " " + String.valueOf(serverSocket.getLocalPort()), os);
-			// Attente de connexion
 			gameServerSocket = serverSocket.accept();
 			System.out.println("Client connected");
 			Client.myState = Client.Current_state.client_client;
@@ -207,7 +205,7 @@ public class ClientServerListener implements Runnable {
 	}
 
 	/**
-	 * Con
+	 * Connecte au server de jeu
 	 * 
 	 * @param addPort
 	 */
@@ -229,7 +227,6 @@ public class ClientServerListener implements Runnable {
 			Client.myState = Client.Current_state.client_client;
 			Client.myRole = current_role.client;
 			Client.myPlatforme = new Platforme();
-			// Client.myPlatforme.show();
 			if (Client.myPlatforme == null) {
 				System.out.println("ici null");
 			}

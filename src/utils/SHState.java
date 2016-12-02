@@ -1,5 +1,10 @@
 package utils;
 
+/**
+ * @authors POGORELOV Mikhail et CHIEV Alexandre
+ * Enumeration d'états possibles du ServerHandlerThread
+ *
+ */
 public enum SHState {
 	nothing,
 	waiting_port,

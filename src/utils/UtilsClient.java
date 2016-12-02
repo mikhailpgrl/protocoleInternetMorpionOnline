@@ -6,6 +6,11 @@ import java.net.ServerSocket;
 import client.Client;
 import client.Client.Current_state;
 
+/**
+ * @authors POGORELOV Mikhail et CHIEV Alexandre
+ * Contient les utilitaires pour le client
+ * 
+ */
 public class UtilsClient {
 	/**
 	 * Genere un tableau de ports puis 
@@ -25,8 +30,6 @@ public class UtilsClient {
 	            continue; // try next port
 	        }
 	    }
-
-	    // if the program gets here, no port in the range was found
 	    throw new IOException("no free port found");
 	}
 }

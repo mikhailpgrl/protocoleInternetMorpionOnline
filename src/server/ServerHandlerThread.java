@@ -10,9 +10,12 @@ import client.ClientModel;
 import utils.SHState;
 import utils.UtilsServer;
 
-
+/**
+ * Runnable qui gere la communication server-client
+ * @authors POGORELOV Mikhail et CHIEV Alexandre
+ *
+ */
 public class ServerHandlerThread implements Runnable{
-
 
 
 	/* Les messages partant du serveur*/
@@ -30,11 +33,11 @@ public class ServerHandlerThread implements Runnable{
 	private int numPort;
 	private String add;
 
-	private ClientModel myClientModel;
+	
+	private ClientModel myClientModel; // Modele du client
 	private ClientModel myClientModel2; // avec qui jouer
 	
-
-	
+	// Etat courant du runnable
 	public static SHState myState;
 	
 
@@ -44,8 +47,6 @@ public class ServerHandlerThread implements Runnable{
 		this.myClientModel = cm;
 		this.myClientModel2 = null;
 	}
-
-
 
 	@Override
 	public void run() {
@@ -66,18 +67,15 @@ public class ServerHandlerThread implements Runnable{
 			/**
 			 * Fin envoi message welcome
 			 */
-			//while (Utils.isConnected(myClientModel.getId())){
-				String line;
-				while((line = myIsr.readLine()) != null) {
-					System.out.println(line);
-					receiveMessage(line, myClientModel.getSocket().getOutputStream());
-				}
-		//	}
+			String line;
+			while((line = myIsr.readLine()) != null) {
+				System.out.println(line);
+				receiveMessage(line, myClientModel.getSocket().getOutputStream());
+			}
 		}
 		catch (IOException e1) {
 			System.out.println(e1.getMessage().toString());
 			System.out.println("Le client "+ myClientModel.getId() + " @" + myClientModel.getAddress().toString() + " vient de se d�connecter!");
-			//e1.printStackTrace();
 		}
 	}
 
@@ -103,7 +101,7 @@ public class ServerHandlerThread implements Runnable{
 	 * @param os      : outputstream à utiliser
 	 * Remarque: Verifies le message avant de l'envoyer
 	 */
-	public  void sendMessage(String message, OutputStream os){
+	public void sendMessage(String message, OutputStream os){
 		String[] parts = message.split(" ");
 		String msgPart2 = "";
 		if(parts.length > 1){
@@ -155,7 +153,6 @@ public class ServerHandlerThread implements Runnable{
 			break;
 		}
 	}
-
 
 	/**
 	 * Envoi true si le joueur existe
@@ -286,35 +283,28 @@ public class ServerHandlerThread implements Runnable{
 						/**
 						 * Celui qui demande fait le client, et celui qui re�oit fait le serveur
 						 */
-//						if(myClientModel2 == null){
-							// On recupere son model grâce à son ID
-							myClientModel2 = UtilsServer.getClientById(msgPart2);
-							/**
-							 * On demande a cm2 s'il veut bien faire la partie
-							 */
-							String tmpMsg = ask_game;
-							// Type du Message AskGame + ID
-							tmpMsg += " "+ myClientModel.getId();
-							if(myClientModel2 != null){
-								System.out.println(threadId + "second client is not null");
-							}
-							// On met les jouers dans la file d'attente
-							UtilsServer.addToQueue(myClientModel.getId(), myClientModel2.getId());
-							sendMsgToClient(tmpMsg, myClientModel2.getSocket().getOutputStream());
-							myState = SHState.waiting_answer;
-//						}else{
-//							System.out.println(threadId + "myClientModel2 is not null = " + msgPart2);
-//						}
-
+						// On recupere son model grâce à son ID
+						myClientModel2 = UtilsServer.getClientById(msgPart2);
+						/**
+						 * On demande a cleintmodel2 s'il veut bien faire la partie
+						 */
+						String tmpMsg = ask_game;
+						// Type du Message AskGame + ID
+						tmpMsg += " "+ myClientModel.getId();
+						if(myClientModel2 != null){
+							System.out.println(threadId + "second client is not null");
+						}
+						// On met les joueurs dans la file d'attente
+						UtilsServer.addToQueue(myClientModel.getId(), myClientModel2.getId());
+						sendMsgToClient(tmpMsg, myClientModel2.getSocket().getOutputStream());
+						myState = SHState.waiting_answer;
 					}else{
 						System.out.println(threadId + "Le joueur " + msgPart2 + " est deja dans le jeu");
 						String rep = error+ " 404";
 						sendMessage(rep, os);
 						myState = SHState.waiting_ok;
-						
 					}
 				}
-
 				break;
 				// Le client renvoi l'addres donc c'est le serveur	
 			case Client.adressGame:
@@ -353,10 +343,5 @@ public class ServerHandlerThread implements Runnable{
 				break;
 			}
 		}
-		
-
-		
 	}
-
-
 }

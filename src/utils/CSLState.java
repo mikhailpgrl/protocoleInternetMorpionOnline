@@ -1,5 +1,10 @@
 package utils;
 
+/**
+ * @authors POGORELOV Mikhail et CHIEV Alexandre
+ * Enumeration d'états possibles d'un runnable client-server
+ *
+ */
 public enum CSLState {
 	nothing,
 	waiting_refuse_error_create_addr, // Play ID

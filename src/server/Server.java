@@ -11,7 +11,15 @@ import java.util.concurrent.Executors;
 
 import client.ClientModel;
 
-
+/**
+ * Server:
+ * 	Gere les connexion des clients
+ *  Utilise un ThreadPool pour gerer les clients sur 5 threads
+ *  Possède une liste de clients (ClientModel)
+ *  Possède une file d'attente (pour les clients qui demandent la partie)
+ * @authors POGORELOV Mikhail et CHIEV Alexandre
+ *
+ */
 public class Server {
 
 	public static int id = 0;
@@ -23,8 +31,7 @@ public class Server {
 	public static Map<String, String> queue;
 
 	
-	
-
+	// ThreadPool executer
 	private static ExecutorService executor = Executors.newFixedThreadPool(5);
 
 
@@ -44,8 +51,6 @@ public class Server {
 				id++;
 				ClientModel cm = new ClientModel(String.valueOf(id), s);
 				System.out.println("Le client :" + s.getInetAddress() + " vient de se connecter, son id : " + cm.getId());
-				//ClientModel cm2 = new ClientModel(String.valueOf(2), s);
-				//queue.put("1", "2");
 				Runnable clientRun = new ServerHandlerThread(cm);
 				clients.add(cm);
 				executor.execute(clientRun);

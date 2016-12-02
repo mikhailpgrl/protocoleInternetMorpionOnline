@@ -1,12 +1,14 @@
 package client;
 
-
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 
-
+/**
+ * 
+ * @authors POGORELOV Mikhail et CHIEV Alexandre
+ *
+ */
 public class ClientModel {
 
 	private String id;

@@ -13,9 +13,10 @@ import utils.CCLState;
 import utils.ClientStateHandler;
 /**
  * 
- * @author POGORELOV Mikhail et CHIEV Alexandre
+ * @authors POGORELOV Mikhail et CHIEV Alexandre
  * 
  * Runnable qui gere la connexion entre le Client et le Server
+ * Traite les messages recus en fonction de son état courant
  *
  */
 
@@ -28,31 +29,10 @@ public class ClientClientListener implements Runnable{
 	
 	private int val;
 	
-	private CCLState myState;
-	private Socket mySocket;
+	private CCLState myState;	// Etat courant du runnable 
+	private Socket mySocket;	// Socket de communication client-client
 	
 	
-	
-
-	public CCLState getMyState() {
-		return myState;
-	}
-
-	public void setMyState(CCLState myState) {
-		this.myState = myState;
-	}
-
-	
-
-
-	public Socket getMySocket() {
-		return mySocket;
-	}
-
-	public void setMySocket(Socket mySocket) {
-		this.mySocket = mySocket;
-	}
-
 	public ClientClientListener(Socket socket, boolean isServer, OutputStream osServer) {
 		super();
 		this.mySocket = socket;
@@ -66,7 +46,8 @@ public class ClientClientListener implements Runnable{
 		}
 		this.isServer = isServer;
 	}
-
+	
+	
 
 
 
@@ -75,12 +56,11 @@ public class ClientClientListener implements Runnable{
 		BufferedReader myIsr;
 		if(Client.myRole == current_role.server){
 			Client.isMyTurn = false;
-			Client.player_num = 2;
+			Client.player_num = 2; 
 			Client.sendMessagesToClient(Client.youStartGame, os);
 		}
 		try {
 			myIsr = new BufferedReader(new InputStreamReader(is));
-			char[] buf = new char[1024];;
 			while (true){
 				String line;
 				while((line = myIsr.readLine()) != null) {
@@ -99,7 +79,6 @@ public class ClientClientListener implements Runnable{
 	}
 		
 	
-	//TODO: Implementer la fonction exit()
 	/**
 	 * Traite les messages reçus du second client
 	 * @param message
@@ -118,7 +97,7 @@ public class ClientClientListener implements Runnable{
 			ClientStateHandler.handle_in_game_state(msg, msgPart2, myState, val, os, osServer,mySocket);
 			break;
 		case nothing:
-			ClientStateHandler.handle_nothing_state(msg, msgPart2, myState, val, os, isServer,mySocket);			
+			ClientStateHandler.handle_nothing_state(msg, msgPart2, myState, val, os, isServer,mySocket,osServer);			
 			break;
 		case waiting_regame_server:
 			ClientStateHandler.handle_waiting_regame_server(msg, msgPart2, myState, val, os, mySocket);
@@ -134,6 +113,22 @@ public class ClientClientListener implements Runnable{
 		default:
 			break;
 		}
+	}
+	
+	public CCLState getMyState() {
+		return myState;
+	}
+
+	public void setMyState(CCLState myState) {
+		this.myState = myState;
+	}
+
+	public Socket getMySocket() {
+		return mySocket;
+	}
+
+	public void setMySocket(Socket mySocket) {
+		this.mySocket = mySocket;
 	}
 
 	

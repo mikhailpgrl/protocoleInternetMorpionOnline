@@ -2,6 +2,11 @@ package game;
 
 import client.Client;
 
+/**
+ * Class de gestion de jeu
+ * @authors POGORELOV Mikhail et CHIEV Alexandre
+ *
+ */
 public class GameHandler {
 		
 	/**
@@ -15,8 +20,7 @@ public class GameHandler {
 	 */
 
 
-	
-	
+
 	/**
 	 * Verifie si l'un des deux joueurs gagne
 	 * @param p : platforme de jeux
@@ -91,20 +95,7 @@ public class GameHandler {
 			p.refresh();
 			return Client.draw;
 		}
-		
-		
-		
-		
-		
-		
-		
-		
-		return null;
-		
+		return null;	
 	}
-	
-	
-	
-	
 	
 }

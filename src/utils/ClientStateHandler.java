@@ -8,9 +8,22 @@ import client.Client;
 import client.Client.Current_state;
 import client.Client.current_role;
 import game.GameHandler;
-
+/**
+ * @authors POGORELOV Mikhail et CHIEV Alexandre
+ * Contient les methodes permettant de gerer les messages recu par le client en fonction de son état
+ *
+ */
 public class ClientStateHandler {
-
+	/**
+	 * Gere les message lorsque le client est dans la partie
+	 * @param msg
+	 * @param msgPart2
+	 * @param myState
+	 * @param val
+	 * @param os
+	 * @param osSever
+	 * @param mySocket
+	 */
 	public static void handle_in_game_state(String msg, String msgPart2, CCLState myState, int val, OutputStream os, OutputStream osSever, Socket mySocket){
 		switch (msg) {
 		case Client.pos:
@@ -69,8 +82,17 @@ public class ClientStateHandler {
 			break;
 		}
 	}
-	
-	public static void handle_nothing_state(String msg, String msgPart2, CCLState myState, int val, OutputStream os, boolean isServer, Socket socket){
+	/**
+	 * Gerer n'importe quel message recu
+	 * @param msg
+	 * @param msgPart2
+	 * @param myState
+	 * @param val
+	 * @param os
+	 * @param isServer
+	 * @param socket
+	 */
+	public static void handle_nothing_state(String msg, String msgPart2, CCLState myState, int val, OutputStream os, boolean isServer, Socket socket, OutputStream osSever){
 
 		switch (msg) {
 		case Client.youStartGame:
@@ -129,19 +151,35 @@ public class ClientStateHandler {
 			System.out.println(msg);
 			break;
 		case Client.exit:
+			System.out.println("Votre adversaire client a quitte la partie");
+			Client.myClientClientListener.setMyState(CCLState.nothing);
+			Client.myRole =current_role.client;
+			Client.myState = Current_state.client_server;
+			// J'envoi ok a mon adversaire 
+			Client.sendMessagesToClient(Client.ok, os);
+			Client.sendMessagesToServer(Client.returnServer, osSever);
 			try {
+				System.out.println("Vous vous reconnectez au server");
 				socket.close();
-				System.out.println("Le client a quitte la partie");
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println("Vous vous reconnectez au server");
+				//e.printStackTrace();
 			}
 			break;
 		default:
 			break;
 		}
 	}
-
+	/**
+	 *  Gere les message lorsque le client a demandé de refaire une partie
+	 * Ici le client doit avoir le role de client dans la partie
+	 * @param msg
+	 * @param msgPart2
+	 * @param myState
+	 * @param val
+	 * @param os
+	 * @param mySocket
+	 */
 	public static void handle_waiting_regame_server(String msg, String msgPart2, CCLState myState, int val, OutputStream os, Socket mySocket){
 		/**
 		 * Messages possibles dans cet etat
@@ -180,7 +218,16 @@ public class ClientStateHandler {
 			break;
 		}
 	}
-	
+	/**
+	 * Gere les messages lorsque le client a demandé de refaire une partie
+	 * Ici le client doit avoir le role de serveur dans la partie
+	 * @param msg
+	 * @param msgPart2
+	 * @param myState
+	 * @param val
+	 * @param os
+	 * @param mySocket
+	 */
 	public static void handle_waiting_regame_client(String msg, String msgPart2, CCLState myState, int val, OutputStream os, Socket mySocket){
 		/**
 		 * Messages possibles dans cet état
@@ -221,7 +268,11 @@ public class ClientStateHandler {
 			break;
 		}
 	}
-
+	/**
+	 * Gere les messages lorsqu'il est dans l'état d'attente d'un ok
+	 * @param msg : messge recu
+	 * @param myState: etat du client
+	 */
 	public static void handle_waiting_ok(String msg, CCLState myState){
 		if(msg.compareTo(Client.ok) == 0){
 			Client.myClientClientListener.setMyState(CCLState.nothing);
@@ -230,12 +281,11 @@ public class ClientStateHandler {
 		}
 	}
 	/**
-	 * 
+	 * Gere les messages lorsqu'il est dans l'état d'attente d'un ok afin de quitter la partie
 	 * @param msg
 	 * @param socket : socket client-client
 	 * @param osServer : outputstream serveur
 	 */
-	
 	public static void handle_waiting_ok_exit(String msg, Socket socket, OutputStream osServer){
 		if(msg.compareTo(Client.ok) == 0){
 			try {

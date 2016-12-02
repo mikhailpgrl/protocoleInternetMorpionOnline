@@ -5,7 +5,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Scanner;
 
-import client.Client.Current_state;
 import game.Platforme;
 import utils.CCLState;
 import utils.CSLState;
@@ -13,11 +12,11 @@ import utils.CSLState;
 
 /**
  * 
- * @author POGORELOV Mikhail et CHIEV Alexandre
- * 
- * Remarques: l'enumeration permet de distinguer les differents niveaux de communication
- *  Pas utilis� pour cette partie
- *
+ * @authors POGORELOV Mikhail et CHIEV Alexandre
+ * Client:
+ * 	Gere la connection au serveur (local/distant)
+ * 	Une fois connecté au serveur, lance un thread gerant les entrées depuis le serveur
+ *  Traite les messages envoyés au server et au client
  */
 
 
@@ -49,34 +48,47 @@ public class Client {
 	public static final String yes = "Yes"; // réponse a Regame
 	// Error + 777 si l'autre client a triché
 
+	
 	private static ClientServerListener myClientServerListener;
 	public static ClientClientListener myClientClientListener;
 
+	/**
+	 * Etat courant du client: 
+	 *  1: En communication avec le serveur "client_server"
+	 *  2: En communication avec le client "client_client"
+	 */
 	public static enum Current_state {
 		client_server,
 		client_client
 	}
 	
+	/**
+	 * Rôle du client lorsqu'il est connecté à un client:
+	 * 	1: s'il est serveur "server"
+	 *  2: s'il est client  "client"
+	 */
 	public static enum current_role {
 		server,
 		client
 	}
 	
-	public static boolean isRunning;
-	public static boolean isMyTurn;
+	public static boolean isRunning; // True si le client tourne, False sinon
+	public static boolean isMyTurn; // True si c'est à mon tour, False sinon
 	
 	public static int player_num; // 1 ou 2
 	
-	public static Current_state myState;
-	public static current_role myRole;
+	public static Current_state myState; // Etat courant du client
+	public static current_role myRole; // Role courant du client
 	
-	public static Platforme myPlatforme;
+	public static Platforme myPlatforme; // Plateforme de jeu
 	private static int val;
 
 	private static OutputStream osServer;
 	
+	
 	public static void main(String args[]){
 		System.out.println("Client started");
+		//Affichons les commandes
 		explainCommands();
 		System.out.println("Veuillez saisir l'addresse IP du serveur/entrée pour localhost");
 		Scanner scan = new Scanner(System.in);
@@ -87,7 +99,6 @@ public class Client {
 			}
 		}
 		
-		
 		try (Socket socket = new Socket(address, 1027);){
 			System.out.println("Connecté au serveur");		
 			myState = Current_state.client_server;
@@ -95,13 +106,11 @@ public class Client {
 			isMyTurn = false;
 			osServer = socket.getOutputStream();
 			isRunning = true;
+			
 			/**On lance la fonction qui permet de gerer le signal de sortie*/
 			startCtrl_CHandler(socket);
 			/**On lance l'écouter qui recoit les message du serveur*/
 			startClientServerListener(socket);
-			
-
-			
 			
 			/** On envoi les messages ici*/
 			while(isRunning){
@@ -119,7 +128,6 @@ public class Client {
 					}	
 				}
 			}
-
 		} catch (IOException e) {
 			System.out.println("client message: " + e.getMessage().toString());
 		}
@@ -130,7 +138,10 @@ public class Client {
 	}
 
 
-
+	/**
+	 * Lance l'écouteur de la socket client serveur
+	 * @param socket
+	 */
 	private static void startClientServerListener(Socket socket){
 		myClientServerListener = new ClientServerListener(socket);
 		new Thread(myClientServerListener).start();
@@ -256,20 +267,13 @@ public class Client {
 						if(myPlatforme.put(Integer.valueOf(msgPart2), val) == true){
 							myPlatforme.show();
 							System.out.println("etat "  + myClientClientListener.getMyState().toString());
-							//myPlatforme.show2();
-//							String resp = GameHandler.checkPlatform(Client.myPlatforme);
-//							if(resp != null){
-//								if(resp.compareTo(Client.youWin) == 0 || resp.compareTo(Client.draw) == 0){
-//									//myClientClientListener.setMyState(CCLState.waiting_ok);
-//								}
-//							}
 							sendMsgToServer(message, os);
 							isMyTurn = false;
 						}else{
-							System.out.println("probleme");
+							System.out.println("Position déjà prise!!!");
 						}
 					}else{
-						System.out.println("position impossible");
+						System.out.println("Position impossible!!!");
 						break;
 					}
 				}else{
@@ -312,6 +316,9 @@ public class Client {
 		}	
 	}
 	
+	/**
+	 * Methode affichant les commandes possibles du client
+	 */
 	private static void explainCommands(){
 		System.out.println("'AskId' = demander votre id");
 		System.out.println("'AskList' = demander la liste des joueurs connectés au serveur");
@@ -322,6 +329,12 @@ public class Client {
 		System.out.println("'Exit' = quitter le jeu / partie");
 	}
 	
+	
+	/**
+	 * Fonction permettant de gerer la sortie de programme (Control + C)
+	 * On envoi un message EXIT vers le serveur et/ou client en fonction de l'état actuel
+	 * @param socket
+	 */
 	public static void startCtrl_CHandler(Socket socket){
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){

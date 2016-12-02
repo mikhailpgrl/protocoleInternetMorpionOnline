@@ -1,12 +1,16 @@
 package utils;
 
 import java.util.Iterator;
+
 import java.util.Map;
 import java.util.Map.Entry;
 
 import client.ClientModel;
 import server.Server;
-
+/**
+ * @authors POGORELOV Mikhail et CHIEV Alexandre
+ * Contient les utilitaires pour le client
+ */
 public class UtilsServer {
 
 	
@@ -15,7 +19,6 @@ public class UtilsServer {
 	 * @param id
 	 * @return
 	 */
-
 	synchronized public static boolean isConnected(String id){
 		for (ClientModel cm : Server.clients) {
 			if(cm.getId().compareTo(id) == 0){
@@ -25,6 +28,10 @@ public class UtilsServer {
 		return false;
 	}
 	
+	/**
+	 * Met la varable isInGame du client a true 
+	 * @param myClientModel
+	 */
 	synchronized static public void setClientInGame(ClientModel myClientModel){
 		for (ClientModel cm : Server.clients) {
 			if(cm.getId().compareTo(myClientModel.getId()) == 0){
@@ -32,6 +39,10 @@ public class UtilsServer {
 			}
 		}
 	}
+	/**
+	 * Met la varable isInGame du client a false 
+	 * @param myClientModel
+	 */
 	synchronized public static void unsetClientInGame(ClientModel myClientModel){
 		for (ClientModel cm : Server.clients) {
 			if(cm.getId().compareTo(myClientModel.getId()) == 0){

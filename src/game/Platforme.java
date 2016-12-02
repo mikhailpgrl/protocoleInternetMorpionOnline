@@ -1,5 +1,9 @@
 package game;
-
+/**
+ * 
+ * @authors POGORELOV Mikhail et CHIEV Alexandre
+ *
+ */
 public class Platforme {
 
 	/**
@@ -144,13 +148,16 @@ public class Platforme {
 	public boolean isFull(){
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
-				if(this.platforme[i][j] != -1)
+				if(this.platforme[i][j] == -1)
 					return false;
 			}
 		}
 		return true;
 	}
 	
+	/**
+	 * Affiche la plateforme
+	 */
 	public void show(){
 		char s;
 		for (int i = 0; i < 3; i++) {
@@ -172,9 +179,7 @@ public class Platforme {
 		}
 	}
 	
-	
-	
-	
+
 	public void show2(){
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
