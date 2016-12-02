@@ -104,17 +104,23 @@ public class Client {
 						try {
 							sendMessagesToServer(Client.exit, socket.getOutputStream());
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							if(e.getMessage().toString().equals("Broken pipe")){
+								System.out.println("Le serveur est offline");
+							}else{
+								System.out.println(e.getMessage().toString());
+							}
 						}
 					}
 					if(myState == Current_state.client_client){
 						try {
-							sendMessagesToServer(Client.exit, socket.getOutputStream());
 							sendMessagesToClient(Client.exit, myClientClientListener.getMySocket().getOutputStream());
+							sendMessagesToServer(Client.exit, socket.getOutputStream());
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							if(e.getMessage().toString().equals("Broken pipe")){
+								System.out.println("Le serveur ou serveur est déjà offline");
+							}else{
+								System.out.println(e.getMessage().toString());
+							}
 						}
 					}
 				}
@@ -167,7 +173,11 @@ public class Client {
 			os.flush();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			if(e.getMessage().toString().equals("Broken pipe")){
+				System.out.println("Le server / client est déjà déconnecté!");
+			}else{
+				System.out.println(e.getMessage().toString());
+			}
 		}
 	}
 

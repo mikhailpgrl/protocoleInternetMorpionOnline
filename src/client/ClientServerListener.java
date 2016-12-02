@@ -86,7 +86,7 @@ public class ClientServerListener implements Runnable {
 			msgPart2 = parts[1];
 		}
 		String msg = parts[0];
-		System.out.println("Message recu " + message);
+		System.out.println("Message recu " + message + " etat: " + myState);
 		/**
 		 * On traite les reponses en fonction de l'état du client
 		 */
@@ -167,7 +167,7 @@ public class ClientServerListener implements Runnable {
 			// Affiche le message en entier
 			case ServerHandlerThread.your_id:
 				Client.sendMsgToServer(Client.ok, os);
-				showMessage(message, true);
+				showMessage(message, false);
 				break;
 			// Affiche le message en entier
 			case ServerHandlerThread.ask_game:
