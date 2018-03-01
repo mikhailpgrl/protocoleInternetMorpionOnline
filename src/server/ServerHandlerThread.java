@@ -318,6 +318,7 @@ public class ServerHandlerThread implements Runnable{
 			case Client.port:
 				System.out.println("Recu le port du client:" + msgPart2);
 				this.numPort = Integer.valueOf(msgPart2);
+				Client.sendMessagesToClient(Client.ok, os);
 				myState = SHState.nothing;
 				ClientModel asker = UtilsServer.getAskerFromQueue(myClientModel.getId());
 				ClientModel resp = UtilsServer.getResponderFromQueue(asker.getId());

@@ -9,5 +9,6 @@ public enum SHState {
 	nothing,
 	waiting_port,
 	waiting_ok,
+	waiting_ok_before_start,
 	waiting_answer // Reponse au AskGame
 }

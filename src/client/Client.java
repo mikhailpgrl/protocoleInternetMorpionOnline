@@ -6,6 +6,8 @@ import java.net.Socket;
 import java.util.Scanner;
 
 import game.Platforme;
+import javafx.application.Application;
+import javafx.stage.Stage;
 import utils.CCLState;
 import utils.CSLState;
 
@@ -20,7 +22,7 @@ import utils.CSLState;
  */
 
 
-public class Client {
+public class Client{
 
 	// Messages partant de client au server
 	public static final String askList = "AskList"; // ok
@@ -255,30 +257,34 @@ public class Client {
 			sendMsgToServer(msg, os);
 			break;
 		case pos:
-			if(Character.isDigit(msgPart2.charAt(0))){
-				if(myClientClientListener.getMyState() == CCLState.waiting_regame_server){
-					myClientClientListener.setMyState(CCLState.in_game);
-					isMyTurn = true;					
-				}
-				if(isMyTurn){
-					int pos = Integer.valueOf(msgPart2);
-					if(pos >= 0 && pos <= 8){
-						val = Client.player_num == 2? 2:1;
-						if(myPlatforme.put(Integer.valueOf(msgPart2), val) == true){
-							myPlatforme.show();
-							System.out.println("etat "  + myClientClientListener.getMyState().toString());
-							sendMsgToServer(message, os);
-							isMyTurn = false;
+			if(!msgPart2.equals("")){
+				if(Character.isDigit(msgPart2.charAt(0))){
+					if(myClientClientListener.getMyState() == CCLState.waiting_regame_server){
+						myClientClientListener.setMyState(CCLState.in_game);
+						isMyTurn = true;					
+					}
+					if(isMyTurn){
+						int pos = Integer.valueOf(msgPart2);
+						if(pos >= 0 && pos <= 8){
+							val = Client.player_num == 2? 2:1;
+							if(myPlatforme.put(Integer.valueOf(msgPart2), val) == true){
+								myPlatforme.show();
+								System.out.println("etat "  + myClientClientListener.getMyState().toString());
+								sendMsgToServer(message, os);
+								isMyTurn = false;
+							}else{
+								System.out.println("Position déjà prise!!!");
+							}
 						}else{
-							System.out.println("Position déjà prise!!!");
+							System.out.println("Position impossible!!!");
+							break;
 						}
 					}else{
-						System.out.println("Position impossible!!!");
-						break;
+						System.out.println("C'est pas votre tour!");
 					}
-				}else{
-					System.out.println("C'est pas votre tour!");
 				}
+			}else{
+				System.out.println("Vous n'avez pas précisé la position!!!");
 			}
 			break;
 		case exit:
@@ -364,10 +370,5 @@ public class Client {
 			}
 		});
 	}
-
-
-
-
-
 
 }

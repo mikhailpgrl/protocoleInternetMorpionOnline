@@ -227,6 +227,8 @@ public class ClientServerListener implements Runnable {
 			Client.myState = Client.Current_state.client_client;
 			Client.myRole = current_role.client;
 			Client.myPlatforme = new Platforme();
+			Client.sendMessagesToServer(Client.ok, osServ);
+			Client.myPlatforme.show();
 			if (Client.myPlatforme == null) {
 				System.out.println("ici null");
 			}

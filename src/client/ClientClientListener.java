@@ -42,7 +42,7 @@ public class ClientClientListener implements Runnable{
 			this.os = socket.getOutputStream();
 			this.is = socket.getInputStream();
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println(e.getMessage().toString());
 		}
 		this.isServer = isServer;
 	}
@@ -73,7 +73,7 @@ public class ClientClientListener implements Runnable{
 				System.out.println("Le client s'est d�connect�");
 			}else{
 				System.out.println(e1.getMessage().toString());
-				e1.printStackTrace();	
+	
 			}
 		}
 	}

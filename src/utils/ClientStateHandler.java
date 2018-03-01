@@ -32,26 +32,34 @@ public class ClientStateHandler {
 			char c = (Client.player_num == 2? 'X': '0');
 			System.out.println("Vous jouez avec " + c);
 			val = Client.player_num == 2? 1:2;
-			Client.myPlatforme.put(Integer.valueOf(msgPart2), val);
-			Client.myPlatforme.show();
-			//Client.myPlatforme.show2();
-			String resp = GameHandler.checkPlatform(Client.myPlatforme);
-			if(resp != null){
-				if(resp.compareTo(Client.youWin) == 0){
-					Client.myClientClientListener.setMyState(CCLState.waiting_ok);
-					Client.sendMsgToServer(Client.youWin, os);
-					System.out.println("Votre adversaire gagne la partie!");
-				}else{
-					if(resp.compareTo(Client.draw) == 0){
+			// Si la position est possible
+			if(Client.myPlatforme.put(Integer.valueOf(msgPart2), val)){
+				Client.myPlatforme.show();
+				//Client.myPlatforme.show2();
+				String resp = GameHandler.checkPlatform(Client.myPlatforme);
+				if(resp != null){
+					if(resp.compareTo(Client.youWin) == 0){
 						Client.myClientClientListener.setMyState(CCLState.waiting_ok);
-						Client.sendMsgToServer(Client.draw, os);
-						System.out.println("Egalité!");
+						Client.sendMsgToServer(Client.youWin, os);
+						System.out.println("Votre adversaire gagne la partie!");
+					}else{
+						if(resp.compareTo(Client.draw) == 0){
+							Client.myClientClientListener.setMyState(CCLState.waiting_ok);
+							Client.sendMsgToServer(Client.draw, os);
+							System.out.println("Egalité!");
+						}
 					}
+					Client.sendMsgToServer(resp, os);
+				}else{
+					Client.isMyTurn = true;
 				}
-				Client.sendMsgToServer(resp, os);
 			}else{
-				Client.isMyTurn = true;
+				Client.myClientClientListener.setMyState(CCLState.nothing);
+				System.out.println("Recu une position impossible! => Renvoi l'erreur 777!");
+				Client.sendMsgToServer(Client.error + " 777", os);
+				
 			}
+			
 			break;
 		case	Client.youWin:
 			Client.sendMsgToServer(Client.ok, os);
